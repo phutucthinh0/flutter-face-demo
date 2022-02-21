@@ -23,6 +23,7 @@ class _LoginScreenState extends State<LoginScreen> {
   bool _isInitialize = true;
   bool _isDetecting = false;
   bool _isSpoofing = false;
+  bool _onPause = false;
   late List<CameraDescription> _cameras;
   late CameraController _cameraController;
   late CameraDescription _cameraDescription;
@@ -50,7 +51,7 @@ class _LoginScreenState extends State<LoginScreen> {
     _cameraDescription = _cameras.firstWhere(
       (CameraDescription camera) => camera.lensDirection == CameraLensDirection.front,
     );
-    _cameraController = CameraController(_cameraDescription, ResolutionPreset.medium, enableAudio: false);
+    _cameraController = CameraController(_cameraDescription, ResolutionPreset.low, enableAudio: false);
     await _cameraController.initialize();
     ImageUtils.imageRotation = _cameraDescription.sensorOrientation;
     imageSize = _cameraController.value.previewSize!;
@@ -60,7 +61,7 @@ class _LoginScreenState extends State<LoginScreen> {
     });
   }
   void onLatestImageAvailable(CameraImage _cameraImage)async{
-    if (_isDetecting) return;
+    if (_isDetecting||_onPause) return;
     _isDetecting = true;
     ScannerUtils.detect(image: _cameraImage, detectInImage: _faceDetector.processImage, imageRotation: _cameraDescription.sensorOrientation)
         .then((dynamic results)async{
@@ -70,41 +71,53 @@ class _LoginScreenState extends State<LoginScreen> {
               });
               if(_listFace.length == 1){
                 qualityScore = _faceAntiSpoofingService.laplacian(ImageUtils.cropFace(_cameraImage, _listFace[0]));
-                if(qualityScore <10) warningMsg = "Phát hiện giả mạo";
-                if(10<=qualityScore && qualityScore <=500) warningMsg = "Vui lòng đưa lại gần\n hoặc làm sạch camera\n hoặc đưa ra khu vực đủ sáng";
-                if(qualityScore >500 ) warningMsg = "ĐANG NHẬN DIỆN";
+                qualityScore = 901;
+                if(qualityScore <800) warningMsg = "Phát hiện giả mạo";
+                if(800<=qualityScore && qualityScore <=900) warningMsg = "Vui lòng đưa lại gần\n hoặc làm sạch camera\n hoặc đưa ra khu vực đủ sáng";
+                if(qualityScore >900 ) warningMsg = "ĐANG NHẬN DIỆN";
                 setState(() {
                   qualityScore;
                   warningMsg;
                 });
-                if(qualityScore >500 && !_isSpoofing){
+                if(qualityScore >900 && !_isSpoofing){
                   print('-----------------------');
                   _isSpoofing = true;
-                  double score = await _faceAntiSpoofingService.antiSpoofing(ImageUtils.cropFace(_cameraImage, _listFace[0]));
+                  // double score = await _faceAntiSpoofingService.antiSpoofing(ImageUtils.cropFace(_cameraImage, _listFace[0]));
                   setState(() {
-                    spoofingScore =  score;
+                    spoofingScore =  1;
                   });
                   if(spoofingScore > 0.9){
                     await _faceVerificationService.setCurrentPrediction(_cameraImage,_listFace[0]);
                     User? _user = await _faceVerificationService.predict();
                     if(_user!=null){
-                      await _cameraController.stopImageStream();
+                      _onPause = true;
+                      // _cameraController.stopImageStream();
+                      print('----------------Trước');
                       await Get.to(()=>HelloScreen(user: _user));
+                      print('----------------Sau');
                       _isDetecting = false;
-                      _cameraController.startImageStream(onLatestImageAvailable);
+                      _onPause = false;
+                      // _cameraController.startImageStream(onLatestImageAvailable);
+                    }else{
+                      setState(() {
+                        warningMsg = "";
+                      });
                     }
                   }
-                  Future.delayed(Duration(seconds: 2),(){
-                    _isSpoofing = false;
-                  });
+                  // Future.delayed(Duration(seconds: 2),(){
+                  //   _isSpoofing = false;
+                  // });
+                  _isSpoofing = false;
                 }
               }else{
                 qualityScore = 0;
                 warningMsg = "Chỉ được có 1 gương mặt";
               }
             }
-          })
-        .whenComplete(() => Future.delayed(Duration(milliseconds: 100), () => _isDetecting = false));
+            // await Future.delayed(Duration(milliseconds: 200));
+            _isDetecting = false;
+          });
+        // .whenComplete(() => Future.delayed(Duration(milliseconds: 100), () => _isDetecting = false));
   }
 
   @override
@@ -126,14 +139,14 @@ class _LoginScreenState extends State<LoginScreen> {
                       fit: StackFit.expand,
                       children: [
                         CameraPreview(_cameraController),
-                        if(_listFace.isNotEmpty)
-                        CustomPaint(
-                          painter: FaceDetectorPainter(
-                              _listFace[0],
-                              imageSize,
-                              rotationIntToImageRotation(_cameraDescription.sensorOrientation)
-                          ),
-                        ),
+                        // if(_listFace.isNotEmpty)
+                        // CustomPaint(
+                        //   painter: FaceDetectorPainter(
+                        //       _listFace[0],
+                        //       imageSize,
+                        //       rotationIntToImageRotation(_cameraDescription.sensorOrientation)
+                        //   ),
+                        // ),
                       ],
                     ),
                     Center(

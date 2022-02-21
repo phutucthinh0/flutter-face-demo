@@ -53,7 +53,7 @@ class _SignupScreenState extends State<SignupScreen> {
     _cameraDescription = _cameras.firstWhere(
       (CameraDescription camera) => camera.lensDirection == CameraLensDirection.front,
     );
-    _cameraController = CameraController(_cameraDescription, ResolutionPreset.medium, enableAudio: false);
+    _cameraController = CameraController(_cameraDescription, ResolutionPreset.low, enableAudio: false);
     await _cameraController.initialize();
     ImageUtils.imageRotation = _cameraDescription.sensorOrientation;
     imageSize = _cameraController.value.previewSize!;
@@ -123,6 +123,8 @@ class _SignupScreenState extends State<SignupScreen> {
       return;
     }
     _cameraController.stopImageStream();
+    // imageLib.Image test = ImageUtils.convertCameraImage(cameraImage)!;
+    // File file = await ImageUtils.saveImage(test);
     imageLib.Image imgFace = ImageUtils.cropFace(cameraImage, _listFace[0]);
     List predictedData = _faceVerificationService.setCurrentPrediction(cameraImage, _listFace[0]);
     File file = await ImageUtils.saveImage(imgFace);
