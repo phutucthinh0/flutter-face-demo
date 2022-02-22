@@ -166,12 +166,12 @@ class _SignupScreenState extends State<SignupScreen> {
                     ],
                   ),
                 ),
-                Text('Quality score: $qualityScore'),
-                Text('Face: ${_listFace.length}'),
-                Text(
-                  'Warning: $warningMsg',
-                  style: TextStyle(color: Colors.red),
-                ),
+                // Text('Quality score: $qualityScore'),
+                // Text('Face: ${_listFace.length}'),
+                // Text(
+                //   'Warning: $warningMsg',
+                //   style: TextStyle(color: Colors.red),
+                // ),
                 ElevatedButton(onPressed: ()=>onSignup(), child: Text('DONE')),
               ],
             ),
