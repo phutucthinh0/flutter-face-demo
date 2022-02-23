@@ -42,7 +42,6 @@ class _HelloScreenState extends State<HelloScreen> {
         children: [
           Center(child: Text('Xin chào ${widget.user.user}'),),
           Spacer(),
-
         ],
       ),
     );

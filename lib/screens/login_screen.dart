@@ -195,7 +195,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     Container(
                       padding: EdgeInsets.symmetric(horizontal: 20),
                         child: Text(
-                      'và giữ ổn định để nhận diện!',
+                      'và giữ ổn định 3 giây để nhận diện!',
                       style: TextStyle(
                           color: Colors.white,
                           fontSize: 17,

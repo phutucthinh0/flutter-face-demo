@@ -15,7 +15,7 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
-  DateTime now = DateTime.now();
+  DateTime now = new DateTime.now();
   // String formattedDate = DateFormat('yyyy-MM-dd – kk:mm').format(now);
 
   @override
@@ -26,39 +26,43 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   Widget build(BuildContext context) {
-    print(now);
+    print(now.day);
     return Scaffold(
       body: SafeArea(
         child: Container(
           width: double.infinity,
           height: double.infinity,
-          color: Color(0xff2196F3),
+          color: Color(0xff0B4DE4),
           child: Column(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Container(
                 margin: EdgeInsets.only(top: 20),
                 child: TouchableOpacity(
-                  onTap: () => Get.to(()=>SignupScreen()),
+                  onTap: () => Get.to(() => SignupScreen()),
                   child: Image.asset(
                     'assets/icons/ic_admin.png',
-                    width: 50,
+                    width: 30.sp,
                   ),
                 ),
               ),
               Column(
                 children: [
                   Image.asset(
-                    'assets/icons/face.png',
-                    width: 300,
+                    'assets/icons/faceid3.png',
+                    width: 130.sp,
+                  ),
+                  SizedBox(
+                    height: 30,
                   ),
                   Container(
                       margin: EdgeInsets.only(left: 20, right: 20),
                       child: Text(
                         'Ứng dụng điểm danh',
                         style: TextStyle(
-                            fontSize: 25,
-                            fontWeight: FontWeight.bold,
+                            fontSize: 15.sp,
+                            fontWeight: FontWeight.w600,
+                            wordSpacing: 1,
                             color: Color(0xffffffff)),
                       )),
                   Container(
@@ -66,8 +70,9 @@ class _HomeScreenState extends State<HomeScreen> {
                       child: Text(
                         'bằng khuôn mặt',
                         style: TextStyle(
-                            fontSize: 25,
-                            fontWeight: FontWeight.bold,
+                            fontSize: 15.sp,
+                            wordSpacing: 1,
+                            fontWeight: FontWeight.w600,
                             color: Color(0xffffffff)),
                       )),
                 ],
@@ -75,14 +80,14 @@ class _HomeScreenState extends State<HomeScreen> {
               Column(
                 children: [
                   TouchableOpacity(
-                    onTap: ()=> Get.to(()=>LoginScreen()),
+                    onTap: () => Get.to(() => LoginScreen()),
                     child: Container(
                       margin:
-                          EdgeInsets.symmetric(horizontal: 50, vertical: 30),
+                          EdgeInsets.symmetric(horizontal: 40.sp, vertical: 30),
                       padding:
                           EdgeInsets.symmetric(vertical: 10, horizontal: 10),
                       decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(18),
+                          borderRadius: BorderRadius.circular(30),
                           boxShadow: [
                             BoxShadow(
                               color: Color(0xff2FC7D3).withOpacity(0.5),
@@ -94,9 +99,9 @@ class _HomeScreenState extends State<HomeScreen> {
                               ), // changes position of shadow
                             ),
                           ],
-                          border: Border.all(color: Colors.white, width: 0),
+                          // border: Border.all(color: Colors.white, width: 0),
                           color: Color(0xff2FC7D3)),
-                      height: 45,
+                      height: 50,
                       width: double.infinity,
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.center,
@@ -104,23 +109,52 @@ class _HomeScreenState extends State<HomeScreen> {
                           Text(
                             'Chạm để điểm danh',
                             style: TextStyle(
-                                fontSize: 20,
+                                fontSize: 15.sp,
                                 fontWeight: FontWeight.bold,
-                                color: Colors.white),
+                                color: Color(0xff1C2D48)),
                           ),
                           SizedBox(
-                            width: 10,
+                            width: 10.sp,
                           ),
                           Image.asset(
                             'assets/icons/click.png',
-                            width: 30,
+                            width: 20.sp,
                           ),
                         ],
                       ),
                     ),
                   ),
+                  Container(
+                    margin: EdgeInsets.only(right: 40.sp),
+                    child: Align(
+                      alignment: Alignment.topRight,
+                      child: Text(
+                        DateFormat('HH:mm').format(now),
+                        style: TextStyle(
+                            fontSize: 25.sp,
+                            fontWeight: FontWeight.bold,
+                            color: Color(0xff55DBFF)),
+                      ),
+                    ),
+                  ),
                   SizedBox(
-                    height: 50,
+                    height: 5.sp,
+                  ),
+                  Container(
+                    margin: EdgeInsets.only(right: 40.sp),
+                    child: Align(
+                      alignment: Alignment.topRight,
+                      child: Text(
+                        DateFormat('dd/MM/yyyy').format(now),
+                        style: TextStyle(
+                            fontSize: 15.sp,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.white70),
+                      ),
+                    ),
+                  ),
+                  SizedBox(
+                    height: 30.sp,
                   )
                 ],
               ),
