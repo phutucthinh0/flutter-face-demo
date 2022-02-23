@@ -1,5 +1,8 @@
+import 'dart:io';
+
 import 'package:camera/camera.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_face_demo/screens/signup_done_screen.dart';
 import 'package:flutter_face_demo/services/face_anti_spoofing_serverice.dart';
 import 'package:flutter_face_demo/services/face_verification_service.dart';
 import 'package:flutter_face_demo/utils/image_utils.dart';
@@ -28,6 +31,7 @@ class _LoginScreenState extends State<LoginScreen> {
   late CameraController _cameraController;
   late CameraDescription _cameraDescription;
   late Size imageSize;
+  late CameraImage _cameraImage;
   final FaceDetector _faceDetector = GoogleVision.instance
       .faceDetector(FaceDetectorOptions(enableContours: true));
   List<Face> _listFace = [];
@@ -58,7 +62,7 @@ class _LoginScreenState extends State<LoginScreen> {
         _cameraDescription, ResolutionPreset.low,
         enableAudio: false);
     await _cameraController.initialize();
-    ImageUtils.imageRotation = _cameraDescription.sensorOrientation;
+    ImageUtils.setImageRotation(_cameraDescription);
     imageSize = _cameraController.value.previewSize!;
     _cameraController.startImageStream(onLatestImageAvailable);
     setState(() {
@@ -67,7 +71,9 @@ class _LoginScreenState extends State<LoginScreen> {
   }
 
   void onLatestImageAvailable(CameraImage _cameraImage) async {
+    // return;
     if (_isDetecting || _onPause) return;
+    this._cameraImage = _cameraImage;
     _isDetecting = true;
     ScannerUtils.detect(
             image: _cameraImage,
@@ -96,7 +102,7 @@ class _LoginScreenState extends State<LoginScreen> {
             _isSpoofing = true;
             // double score = await _faceAntiSpoofingService.antiSpoofing(ImageUtils.cropFace(_cameraImage, _listFace[0]));
             setState(() {
-              spoofingScore = 1;
+              spoofingScore =1.0;
             });
             if (spoofingScore > 0.9) {
               await _faceVerificationService.setCurrentPrediction(
@@ -117,9 +123,9 @@ class _LoginScreenState extends State<LoginScreen> {
                 });
               }
             }
-            // Future.delayed(Duration(seconds: 2),(){
-            //   _isSpoofing = false;
-            // });
+            Future.delayed(Duration(seconds: 2),(){
+              _isSpoofing = false;
+            });
             _isSpoofing = false;
           }
         } else {
@@ -129,8 +135,8 @@ class _LoginScreenState extends State<LoginScreen> {
       }
       // await Future.delayed(Duration(milliseconds: 200));
       _isDetecting = false;
-    });
-    // .whenComplete(() => Future.delayed(Duration(milliseconds: 100), () => _isDetecting = false));
+    })
+    .whenComplete(() => Future.delayed(Duration(milliseconds: 100), () => _isDetecting = false));
   }
 
   @override
@@ -200,20 +206,30 @@ class _LoginScreenState extends State<LoginScreen> {
                           color: Colors.white,
                           fontSize: 17,
                           fontWeight: FontWeight.bold),
-                    ))
+                    )),
                     // Text('Quality score: $qualityScore         Spoofing score: ${spoofingScore.toStringAsFixed(3)}'),
                     // Text('Face: ${_listFace.length}'),
                     // Text('Warning: $warningMsg', style: TextStyle(color: Colors.red),),
+                    // ElevatedButton(onPressed: (){
+                    //   _done();
+                    // }, child: Text('aa'))
                   ],
                 ),
             ),
           ),
     );
   }
-
+  _done()async{
+    File file = await ImageUtils.saveImage(ImageUtils.cropFace(_cameraImage, _listFace[0]));
+    Get.to(()=>SignupDoneScreen(
+      file: file,
+      predictedData: [],
+    ));
+  }
   @override
   void dispose() {
     _faceDetector.close();
+    _faceVerificationService.dispose();
     _faceAntiSpoofingService.dispose();
     if (_cameraController.hasListeners) _cameraController.stopImageStream();
     super.dispose();

@@ -55,7 +55,7 @@ class _SignupScreenState extends State<SignupScreen> {
     );
     _cameraController = CameraController(_cameraDescription, ResolutionPreset.low, enableAudio: false);
     await _cameraController.initialize();
-    ImageUtils.imageRotation = _cameraDescription.sensorOrientation;
+    ImageUtils.setImageRotation(_cameraDescription);
     imageSize = _cameraController.value.previewSize!;
     _cameraController.startImageStream(onLatestImageAvailable);
     setState(() {
@@ -150,10 +150,10 @@ class _SignupScreenState extends State<SignupScreen> {
                         fit: StackFit.expand,
                         children: [
                           CameraPreview(_cameraController),
-                          if (_listFace.isNotEmpty)
-                            CustomPaint(
-                              painter: FaceDetectorPainter(_listFace[0], imageSize, rotationIntToImageRotation(_cameraDescription.sensorOrientation)),
-                            ),
+                          // if (_listFace.isNotEmpty)
+                          //   CustomPaint(
+                          //     painter: FaceDetectorPainter(_listFace[0], imageSize, rotationIntToImageRotation(_cameraDescription.sensorOrientation)),
+                          //   ),
                         ],
                       ),
                       Center(

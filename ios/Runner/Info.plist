@@ -4,6 +4,10 @@
 <dict>
 	<key>CFBundleDevelopmentRegion</key>
 	<string>$(DEVELOPMENT_LANGUAGE)</string>
+	<key>NSCameraUsageDescription</key>
+	<string>open</string>
+	<key>NSMicrophoneUsageDescription</key>
+	<string>open</string>
 	<key>CFBundleDisplayName</key>
 	<string>Flutter Face Demo</string>
 	<key>CFBundleExecutable</key>

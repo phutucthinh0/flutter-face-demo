@@ -2,6 +2,7 @@ import 'dart:io';
 import 'dart:math';
 
 import 'package:camera/camera.dart';
+import 'package:get/get.dart';
 import 'package:google_ml_vision/google_ml_vision.dart';
 import 'package:image/image.dart' as imageLib;
 import 'package:path_provider/path_provider.dart';
@@ -10,6 +11,12 @@ import 'package:path_provider/path_provider.dart';
 class ImageUtils {
   /// Converts a [CameraImage] in YUV420 format to [imageLib.Image] in RGB format
   static int imageRotation = 0;
+  static void setImageRotation(CameraDescription _cameraDescription){
+    if(GetPlatform.isAndroid){
+      imageRotation = _cameraDescription.sensorOrientation;
+    }else
+    imageRotation = 0;
+  }
   static imageLib.Image? convertCameraImage(CameraImage cameraImage) {
     if (cameraImage.format.group == ImageFormatGroup.yuv420) {
       return convertYUV420ToImage(cameraImage);
