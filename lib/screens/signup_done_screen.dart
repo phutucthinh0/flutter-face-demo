@@ -12,8 +12,8 @@ import '../utils/image_utils.dart';
 
 class SignupDoneScreen extends StatefulWidget {
   final File file;
-  final List predictedData;
-  SignupDoneScreen({required this.file, required this.predictedData});
+  final List listModelData;
+  SignupDoneScreen({required this.file, required this.listModelData});
 
   @override
   _SignupDoneScreenState createState() => _SignupDoneScreenState();
@@ -31,12 +31,14 @@ class _SignupDoneScreenState extends State<SignupDoneScreen> {
   void initStateAsync()async{
   }
   void done()async{
-    User userToSave = User(
-        user: tffNameController.text,
-        modelData: widget.predictedData
-    );
-    // await db.saveUser(userToSave);
-    FBRealtime.addUsers(userToSave);
+    List<User> userToSave = [];
+    for(int i=0; i<=2; i++){
+      userToSave.add(User(
+          user: tffNameController.text,
+          modelData: widget.listModelData[i]
+      ));
+    }
+    await FBRealtime.addUsers(userToSave);
     Get.back();
   }
   @override
@@ -75,7 +77,7 @@ class _SignupDoneScreenState extends State<SignupDoneScreen> {
               if(tffNameController.text.trim().isNotEmpty)
                 done();
             },
-            child: Text('Done'),
+            child: Text('Hoàn tất'),
           )
         ],
       ),

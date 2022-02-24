@@ -29,12 +29,12 @@ class FBRealtime {
     DatabaseEvent event = await ref.once();
     print(event.snapshot.value);
   }
-  static Future<void> addUsers (User user) async {
+  static Future<void> addUsers (List<User> user) async {
     List<dynamic> _list = [];
     users.forEach((element) {
       _list.add(element.toMap());
     });
-    _list.add(user.toMap());
+    user.forEach((element) {_list.add(element.toMap());});
     ref.update({"list":_list});
   }
 }

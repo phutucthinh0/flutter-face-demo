@@ -43,18 +43,18 @@ class FaceDetectorPainter extends CustomPainter {
           }
         }
 
-        paintContour(FaceContourType.face);
-        paintContour(FaceContourType.leftEyebrowTop);
-        paintContour(FaceContourType.leftEyebrowBottom);
-        paintContour(FaceContourType.rightEyebrowTop);
-        paintContour(FaceContourType.rightEyebrowBottom);
-        paintContour(FaceContourType.leftEye);
-        paintContour(FaceContourType.rightEye);
-        paintContour(FaceContourType.upperLipTop);
-        paintContour(FaceContourType.upperLipBottom);
-        paintContour(FaceContourType.lowerLipTop);
-        paintContour(FaceContourType.lowerLipBottom);
-        paintContour(FaceContourType.noseBridge);
+        // paintContour(FaceContourType.face);
+        // paintContour(FaceContourType.leftEyebrowTop);
+        // paintContour(FaceContourType.leftEyebrowBottom);
+        // paintContour(FaceContourType.rightEyebrowTop);
+        // paintContour(FaceContourType.rightEyebrowBottom);
+        // paintContour(FaceContourType.leftEye);
+        // paintContour(FaceContourType.rightEye);
+        // paintContour(FaceContourType.upperLipTop);
+        // paintContour(FaceContourType.upperLipBottom);
+        // paintContour(FaceContourType.lowerLipTop);
+        // paintContour(FaceContourType.lowerLipBottom);
+        // paintContour(FaceContourType.noseBridge);
         paintContour(FaceContourType.noseBottom);
     // paintContour(FaceContourType.leftCheek);
     // paintContour(FaceContourType.rightCheek);
