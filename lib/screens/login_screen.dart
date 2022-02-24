@@ -9,6 +9,7 @@ import 'package:flutter_face_demo/utils/image_utils.dart';
 import 'package:flutter_face_demo/utils/scanner_utils.dart';
 import 'package:get/get.dart';
 import 'package:google_ml_vision/google_ml_vision.dart';
+import 'package:sizer/sizer.dart';
 
 import '../enums.dart';
 import '../helpers/face_dectector_painter.dart';
@@ -97,7 +98,6 @@ class _LoginScreenState extends State<LoginScreen> {
           });
           if (qualityScore > 900 && !_isSpoofing) {
             print('-----------------------');
-            _isSpoofing = true;
             await _faceVerificationService.setCurrentPrediction(_cameraImage, _listFace[0]);
             User? _user = await _faceVerificationService.predict();
             if (_user != null) {
@@ -114,7 +114,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 warningMsg = "";
               });
             }
-            Future.delayed(Duration(seconds: 2),(){
+            Future.delayed(Duration(seconds: 2), () {
               _isSpoofing = false;
             });
             _isSpoofing = false;
@@ -132,19 +132,20 @@ class _LoginScreenState extends State<LoginScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Đăng nhập'),
+        title: Text('Quét khuôn mặt'),
       ),
       body: _isInitialize
-          ? Center( 
-          child: CircularProgressIndicator(
-              valueColor: AlwaysStoppedAnimation<Color>(Color(0xff2196F3)),
-            ),)
+          ? Center(
+              child: CircularProgressIndicator(
+                valueColor: AlwaysStoppedAnimation<Color>(Color(0xff2196F3)),
+              ),
+            )
           : SafeArea(
-            child: Container(
-              width: double.infinity,
-          height: double.infinity,
-          color: Color(0xff2196F3),
-              child: Column(
+              child: Container(
+                width: double.infinity,
+                height: double.infinity,
+                color: Color(0xff2196F3),
+                child: Column(
                   children: [
                     Container(
                       width: Get.width,
@@ -166,43 +167,45 @@ class _LoginScreenState extends State<LoginScreen> {
                             ],
                           ),
                           Center(
-                            child: Container(
-                              width: 300,
-                              height: 300,
-                              decoration: BoxDecoration(
-                                  border: Border.all(color: Colors.blue, width: 2)),
-                            ),
-                          ),
-                          Center(child: Container(
-                            width: 280,
-                            height: 60,
-                            decoration: BoxDecoration(
-                              color: Colors.black87
-                            ),
-                            child: Center(child: Text(warningMsg, style: TextStyle(color: Colors.white),)),
-                          ))
+                            // child: Container(
+                            //   width: 250,
+                            //   height: 350,
+                            //   // decoration: BoxDecoration(
+                            //   //     border: Border.all(color: Colors.blue, width: 2)),
+                            //   decoration: BoxDecoration(
+                            //     borderRadius: BorderRadius.circular(200),
+                            //     border:
+                            //         Border.all(color: Colors.white, width: 4),
+                            //     // color: Color(0xff2FC7D3)
+                            //   ),
+                            // ),
+                            child:  Image.asset(
+                    'assets/icons/round.png',
+                    width: 200.sp,
+                  ),
+                          )
                         ],
                       ),
                     ),
                     Container(
-                      margin: EdgeInsets.only(top: 50),
-                      padding: EdgeInsets.symmetric(horizontal: 20),
+                        margin: EdgeInsets.only(top: 50),
+                        padding: EdgeInsets.symmetric(horizontal: 20),
                         child: Text(
-                      'Vui lòng đưa khuôn mặt vào trong khung',
-                      style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 17,
-                          fontWeight: FontWeight.bold),
-                    )),
+                          'Vui lòng đưa khuôn mặt vào trong khung',
+                          style: TextStyle(
+                              color: Colors.white,
+                              fontSize: 12.sp,
+                              fontWeight: FontWeight.bold),
+                        )),
                     Container(
-                      padding: EdgeInsets.symmetric(horizontal: 20),
+                        padding: EdgeInsets.symmetric(horizontal: 20),
                         child: Text(
-                      'và giữ ổn định 3 giây để nhận diện!',
-                      style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 17,
-                          fontWeight: FontWeight.bold),
-                    )),
+                          'và giữ ổn định 3 giây để nhận diện!',
+                          style: TextStyle(
+                              color: Colors.white,
+                              fontSize: 12.sp,
+                              fontWeight: FontWeight.bold),
+                        )),
                     // Text('Quality score: $qualityScore         Spoofing score: ${spoofingScore.toStringAsFixed(3)}'),
                     // Text('Face: ${_listFace.length}'),
                     // Text('Warning: $warningMsg', style: TextStyle(color: Colors.red),),
@@ -211,8 +214,8 @@ class _LoginScreenState extends State<LoginScreen> {
                     // }, child: Text('aa'))
                   ],
                 ),
+              ),
             ),
-          ),
     );
   }
   @override
