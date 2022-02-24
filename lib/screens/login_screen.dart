@@ -85,7 +85,8 @@ class _LoginScreenState extends State<LoginScreen> {
           _listFace = results;
         });
         if (_listFace.length == 1) {
-          qualityScore = _faceAntiSpoofingService.laplacian(ImageUtils.cropFace(_cameraImage, _listFace[0]));
+          qualityScore = _faceAntiSpoofingService
+              .laplacian(ImageUtils.cropFace(_cameraImage, _listFace[0]));
           // qualityScore = 901;
           if (qualityScore < 800) warningMsg = "Phát hiện giả mạo";
           if (800 <= qualityScore && qualityScore <= 900)
@@ -98,15 +99,26 @@ class _LoginScreenState extends State<LoginScreen> {
           });
           if (qualityScore > 900 && !_isSpoofing) {
             print('-----------------------');
-            await _faceVerificationService.setCurrentPrediction(_cameraImage, _listFace[0]);
+            await _faceVerificationService.setCurrentPrediction(
+                _cameraImage, _listFace[0]);
             User? _user = await _faceVerificationService.predict();
             if (_user != null) {
               _onPause = true;
-              if(await _faceAntiSpoofingService.antiSpoofing(ImageUtils.cropFace(_cameraImage, _listFace[0]))<0.90){
+              setState(() {
+                _isInitialize = true;
+              });
+              if (await _faceAntiSpoofingService.antiSpoofing(
+                      ImageUtils.cropFace(_cameraImage, _listFace[0])) <
+                  0.90) {
                 warningMsg = "Giả mạo";
-              }else{
-                await Get.to(() => HelloScreen(user: _user));
+              } else {
+                File _image = await ImageUtils.saveImage(
+                    ImageUtils.cropFace(_cameraImage, _listFace[0]));
+                await Get.to(() => HelloScreen(user: _user, image: _image));
               }
+              setState(() {
+                _isInitialize = false;
+              });
               _isDetecting = false;
               _onPause = false;
             } else {
@@ -167,22 +179,10 @@ class _LoginScreenState extends State<LoginScreen> {
                             ],
                           ),
                           Center(
-                            // child: Container(
-                            //   width: 250,
-                            //   height: 350,
-                            //   // decoration: BoxDecoration(
-                            //   //     border: Border.all(color: Colors.blue, width: 2)),
-                            //   decoration: BoxDecoration(
-                            //     borderRadius: BorderRadius.circular(200),
-                            //     border:
-                            //         Border.all(color: Colors.white, width: 4),
-                            //     // color: Color(0xff2FC7D3)
-                            //   ),
-                            // ),
-                            child:  Image.asset(
-                    'assets/icons/round.png',
-                    width: 200.sp,
-                  ),
+                            child: Image.asset(
+                              'assets/icons/round.png',
+                              width: 200.sp,
+                            ),
                           )
                         ],
                       ),
@@ -206,9 +206,12 @@ class _LoginScreenState extends State<LoginScreen> {
                               fontSize: 12.sp,
                               fontWeight: FontWeight.bold),
                         )),
-                    Text('Quality score: $qualityScore'),
-                    Text('Face: ${_listFace.length}'),
-                    Text('Warning: $warningMsg', style: TextStyle(color: Colors.red),),
+                    // Text('Quality score: $qualityScore'),
+                    // Text('Face: ${_listFace.length}'),
+                    // Text(
+                    //   'Warning: $warningMsg',
+                    //   style: TextStyle(color: Colors.red),
+                    // ),
                     // ElevatedButton(onPressed: (){
                     //   _done();
                     // }, child: Text('aa'))

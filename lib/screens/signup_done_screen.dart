@@ -45,7 +45,7 @@ class _SignupDoneScreenState extends State<SignupDoneScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Đăng kí gương mặt'),
+        title: Text('Đăng kí tài khoản'),
       ),
       body:
       Column(
