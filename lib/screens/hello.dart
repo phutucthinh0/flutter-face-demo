@@ -18,7 +18,7 @@ class _HelloScreenState extends State<HelloScreen> {
   void initState() {
     // TODO: implement initState
     super.initState();
-    Future.delayed(Duration(seconds: 3),(){
+    Future.delayed(Duration(seconds: 2),(){
       Get.back();
       setState(() {
         _acceptBack = true;
@@ -29,7 +29,7 @@ class _HelloScreenState extends State<HelloScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Xin chào'),
+        title: Text('Nhận diện thành công!'),
         leading: IconButton(
           icon: Icon(Icons.arrow_back),
           onPressed: (){
