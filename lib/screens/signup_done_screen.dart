@@ -77,7 +77,7 @@ class _SignupDoneScreenState extends State<SignupDoneScreen> {
               if(tffNameController.text.trim().isNotEmpty)
                 done();
             },
-            child: Text('Done'),
+            child: Text('Hoàn tất'),
           )
         ],
       ),

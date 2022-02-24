@@ -86,7 +86,7 @@ class _LoginScreenState extends State<LoginScreen> {
         });
         if (_listFace.length == 1) {
           qualityScore = _faceAntiSpoofingService.laplacian(ImageUtils.cropFace(_cameraImage, _listFace[0]));
-          qualityScore = 901;
+          // qualityScore = 901;
           if (qualityScore < 800) warningMsg = "Phát hiện giả mạo";
           if (800 <= qualityScore && qualityScore <= 900)
             warningMsg =
@@ -102,13 +102,13 @@ class _LoginScreenState extends State<LoginScreen> {
             User? _user = await _faceVerificationService.predict();
             if (_user != null) {
               _onPause = true;
-              // _cameraController.stopImageStream();
-              print('----------------Trước');
-              await Get.to(() => HelloScreen(user: _user));
-              print('----------------Sau');
+              if(await _faceAntiSpoofingService.antiSpoofing(ImageUtils.cropFace(_cameraImage, _listFace[0]))<0.90){
+                warningMsg = "Giả mạo";
+              }else{
+                await Get.to(() => HelloScreen(user: _user));
+              }
               _isDetecting = false;
               _onPause = false;
-              // _cameraController.startImageStream(onLatestImageAvailable);
             } else {
               setState(() {
                 warningMsg = "";
@@ -206,9 +206,9 @@ class _LoginScreenState extends State<LoginScreen> {
                               fontSize: 12.sp,
                               fontWeight: FontWeight.bold),
                         )),
-                    // Text('Quality score: $qualityScore         Spoofing score: ${spoofingScore.toStringAsFixed(3)}'),
-                    // Text('Face: ${_listFace.length}'),
-                    // Text('Warning: $warningMsg', style: TextStyle(color: Colors.red),),
+                    Text('Quality score: $qualityScore'),
+                    Text('Face: ${_listFace.length}'),
+                    Text('Warning: $warningMsg', style: TextStyle(color: Colors.red),),
                     // ElevatedButton(onPressed: (){
                     //   _done();
                     // }, child: Text('aa'))
@@ -218,6 +218,7 @@ class _LoginScreenState extends State<LoginScreen> {
             ),
     );
   }
+
   @override
   void dispose() {
     _faceDetector.close();

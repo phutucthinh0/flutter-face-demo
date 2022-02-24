@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_face_demo/data/firebase_database.dart';
 import 'package:flutter_face_demo/screens/login_screen.dart';
@@ -15,12 +17,18 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
-  DateTime now = new DateTime.now();
+  DateTime now = DateTime.now();
+  Timer? _timer;
   // String formattedDate = DateFormat('yyyy-MM-dd – kk:mm').format(now);
 
   @override
   void initState() {
     FBRealtime.initialize();
+    _timer = Timer.periodic(Duration(seconds: 1), (timer) {
+      setState(() {
+        now = DateTime.now();
+      });
+    });
     super.initState();
   }
 
@@ -129,7 +137,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     child: Align(
                       alignment: Alignment.topRight,
                       child: Text(
-                        DateFormat('HH:mm').format(now),
+                        DateFormat('HH:mm:ss').format(now),
                         style: TextStyle(
                             fontSize: 25.sp,
                             fontWeight: FontWeight.bold,
@@ -163,5 +171,11 @@ class _HomeScreenState extends State<HomeScreen> {
         ),
       ),
     );
+  }
+  @override
+  void dispose() {
+    // TODO: implement dispose
+    super.dispose();
+    _timer!.cancel();
   }
 }
