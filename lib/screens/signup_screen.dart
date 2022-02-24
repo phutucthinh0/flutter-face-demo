@@ -1,4 +1,5 @@
 
+import 'dart:async';
 import 'dart:io';
 
 import 'package:camera/camera.dart';
@@ -26,19 +27,21 @@ class SignupScreen extends StatefulWidget {
 class _SignupScreenState extends State<SignupScreen> {
   bool _isInitialize = true;
   bool _isDetecting = false;
-  bool _isSpoofing = false;
+  bool _isSucess = false;
   late List<CameraDescription> _cameras;
   late CameraController _cameraController;
   late CameraDescription _cameraDescription;
   late Size imageSize;
   final FaceDetector _faceDetector = GoogleVision.instance.faceDetector(FaceDetectorOptions(enableContours: true));
   List<Face> _listFace = [];
-
   final FaceAntiSpoofingService _faceAntiSpoofingService = FaceAntiSpoofingService();
   final FaceVerificationService _faceVerificationService = FaceVerificationService();
   int qualityScore = 0;
   String warningMsg = "";
   late CameraImage cameraImage;
+  Timer? _timer;
+  List _listModeldata = [];
+  List<File> _listFileFace = [];
   @override
   void initState() {
     // TODO: implement initState
@@ -74,62 +77,89 @@ class _SignupScreenState extends State<SignupScreen> {
         });
         if (_listFace.length == 1) {
           qualityScore = _faceAntiSpoofingService.laplacian(ImageUtils.cropFace(_cameraImage, _listFace[0]));
-          if (qualityScore <= 500) warningMsg = "Vui lòng đưa lại gần\n hoặc làm sạch camera\n hoặc đưa ra khu vực đủ sáng";
-          if (qualityScore > 500) warningMsg = "CÓ THỂ ĐĂNG KÍ";
+          if (qualityScore <= 500) warningMsg = "Vui lòng đưa lại gần hoặc làm sạch camera hoặc đưa ra khu vực đủ sáng";
+          if (qualityScore > 500){
+            onSignup();
+          }
           setState(() {
             qualityScore;
             warningMsg;
           });
         } else {
+          if(_timer!=null)_timer!.cancel();
           qualityScore = 0;
-          warningMsg = "Chỉ được có 1 gương mặt";
+          if(_listFace.length==0){
+            warningMsg = "Vui lòng đưa gương mặt vào chính giữa";
+          }else{
+            warningMsg = "Chỉ được có 1 gương mặt";
+          }
         }
       }
-    }).whenComplete(() => Future.delayed(Duration(milliseconds: 100), () => _isDetecting = false));
+      Future.delayed(Duration(milliseconds: 100), () => _isDetecting = false);
+    });
   }
-
   void onSignup() async {
-    if (_listFace.isEmpty) {
-      showDialog(
-        context: context,
-        builder: (context) {
-          return AlertDialog(
-            content: Text('Không tìm thấy gương mặt'),
-          );
-        },
-      );
+    if(_isSucess)return;
+    if(_listModeldata.length >= 3){
+      _isSucess = true;
+      warningMsg = "Hoàn tất đăng kí, đợi trong giây lát";
+      Future.delayed(Duration(seconds: 2),(){
+        Get.off(()=>SignupDoneScreen(file: _listFileFace[0], listModelData: _listModeldata));
+      });
       return;
     }
-    if (_listFace.length > 1) {
-      showDialog(
-        context: context,
-        builder: (context) {
-          return AlertDialog(
-            content: Text('Quá nhiều gương mặt'),
-          );
-        },
-      );
+    if(_timer != null){
+      List<Offset> _listPoint = _listFace[0].getContour(FaceContourType.noseBottom)!.positionsList;
+      double leftPoint = _listPoint[1].dx - _listPoint[0].dx;
+      double rightPoint = _listPoint[2].dx - _listPoint[1].dx;
+      switch (_listModeldata.length){
+        case 0: {
+          if((leftPoint-rightPoint).abs()>2){
+            warningMsg = "Vui lòng nhìn thẳng";
+            _timer!.cancel();
+            _timer = null;
+          }else{
+            warningMsg = "Tiếp giữ gương mặt nhìn thẳng";
+          }
+          break;
+        }
+        case 1: {
+          if(leftPoint-rightPoint < 4){
+            warningMsg = "Vui lòng nhìn sang Trái";
+            _timer!.cancel();
+            _timer = null;
+          }else{
+            warningMsg = "Tiếp tục nhìn sang Trái";
+          }
+          break;
+        }
+        case 2: {
+          if(rightPoint-leftPoint < 4){
+            warningMsg = "Vui lòng nhìn sang Phải";
+            _timer!.cancel();
+            _timer = null;
+          }else{
+            warningMsg = "Tiếp tục nhìn sang Phải";
+          }
+          break;
+        }
+      }
       return;
     }
-    if(qualityScore<500){
-      showDialog(
-        context: context,
-        builder: (context) {
-          return AlertDialog(
-            content: Text(warningMsg),
-          );
-        },
-      );
-      return;
-    }
-    _cameraController.stopImageStream();
-    // imageLib.Image test = ImageUtils.convertCameraImage(cameraImage)!;
-    // File file = await ImageUtils.saveImage(test);
-    imageLib.Image imgFace = ImageUtils.cropFace(cameraImage, _listFace[0]);
-    List predictedData = _faceVerificationService.setCurrentPrediction(cameraImage, _listFace[0]);
-    File file = await ImageUtils.saveImage(imgFace);
-    Get.off(()=>SignupDoneScreen(file: file, predictedData: predictedData));
-    // await Get.to(()=>SignupScreen(cameraImage: cameraImage,face: faceDetected,));
+    _timer = Timer(Duration(milliseconds: 2000),()async{
+      final CameraImage _img = cameraImage;
+      final Face _face = _listFace[0];
+      setState(() {
+        _listModeldata.add(_faceVerificationService.setCurrentPrediction(_img, _face));
+      });
+      _listFileFace.add(await ImageUtils.saveImage(ImageUtils.cropFace(_img, _face)));
+      _timer = null;
+    });
+    // _cameraController.stopImageStream();
+    // imageLib.Image imgFace = ImageUtils.cropFace(cameraImage, _listFace[0]);
+    // List predictedData = _faceVerificationService.setCurrentPrediction(cameraImage, _listFace[0]);
+    // File file = await ImageUtils.saveImage(imgFace);
+    // Get.off(()=>SignupDoneScreen(file: file, predictedData: predictedData));
   }
   @override
   Widget build(BuildContext context) {
@@ -161,18 +191,69 @@ class _SignupScreenState extends State<SignupScreen> {
                           width: 350,
                           height: 350,
                           decoration: BoxDecoration(border: Border.all(color: Colors.blue, width: 2)),
+                          child: Align(
+                            alignment: Alignment.bottomCenter,
+                            child: Container(
+                              width: 348,
+                              height: 60,
+                              decoration: BoxDecoration(border: Border.all(color: Colors.black, width: 2,), color: Colors.black87),
+                              child: Center(child: Text(warningMsg, style: TextStyle(color: Colors.white))),
+                            ),
+                          ),
                         ),
-                      )
+                      ),
                     ],
                   ),
                 ),
+                SizedBox(height: 20),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                  children: [
+                    AnimatedOpacity(
+                      duration: Duration(milliseconds: 500),
+                      opacity: _listFileFace.length >= 2?1:0,
+                      child: Container(
+                        width: 100,
+                        height: 100,
+                        decoration: BoxDecoration(
+                          color: Colors.white
+                        ),
+                        child: _listFileFace.length >= 2?Image.file(_listFileFace[1], fit: BoxFit.cover,):Container(),
+                      ),
+                    ),
+                    AnimatedOpacity(
+                      duration: Duration(milliseconds: 500),
+                      opacity: _listFileFace.length >= 1?1:0,
+                      child: Container(
+                        width: 102,
+                        height: 102,
+                        decoration: BoxDecoration(
+                            color: Colors.white,
+                            border: Border.all(color: Colors.blue, width: 2),
+                        ),
+                        child: _listFileFace.length >= 1?Image.file(_listFileFace[0], fit: BoxFit.cover,):Container(),
+                      ),
+                    ),
+                    AnimatedOpacity(
+                      duration: Duration(milliseconds: 500),
+                      opacity: _listFileFace.length >= 3?1:0,
+                      child: Container(
+                        width: 100,
+                        height: 100,
+                        decoration: BoxDecoration(
+                            color: Colors.white
+                        ),
+                        child: _listFileFace.length >= 3?Image.file(_listFileFace[2], fit: BoxFit.cover,):Container(),
+                      ),
+                    )
+                  ],
+                )
                 // Text('Quality score: $qualityScore'),
                 // Text('Face: ${_listFace.length}'),
                 // Text(
                 //   'Warning: $warningMsg',
                 //   style: TextStyle(color: Colors.red),
                 // ),
-                ElevatedButton(onPressed: ()=>onSignup(), child: Text('DONE')),
               ],
             ),
     );
@@ -183,6 +264,7 @@ class _SignupScreenState extends State<SignupScreen> {
     _faceDetector.close();
     _faceVerificationService.dispose();
     _faceAntiSpoofingService.dispose();
+    if (_timer!=null)_timer!.cancel();
     super.dispose();
   }
 }

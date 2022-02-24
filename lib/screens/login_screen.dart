@@ -42,7 +42,6 @@ class _LoginScreenState extends State<LoginScreen> {
       FaceVerificationService();
 
   int qualityScore = 0;
-  double spoofingScore = 0;
   String warningMsg = "";
   @override
   void initState() {
@@ -85,8 +84,7 @@ class _LoginScreenState extends State<LoginScreen> {
           _listFace = results;
         });
         if (_listFace.length == 1) {
-          qualityScore = _faceAntiSpoofingService
-              .laplacian(ImageUtils.cropFace(_cameraImage, _listFace[0]));
+          qualityScore = _faceAntiSpoofingService.laplacian(ImageUtils.cropFace(_cameraImage, _listFace[0]));
           qualityScore = 901;
           if (qualityScore < 800) warningMsg = "Phát hiện giả mạo";
           if (800 <= qualityScore && qualityScore <= 900)
@@ -100,28 +98,21 @@ class _LoginScreenState extends State<LoginScreen> {
           if (qualityScore > 900 && !_isSpoofing) {
             print('-----------------------');
             _isSpoofing = true;
-            // double score = await _faceAntiSpoofingService.antiSpoofing(ImageUtils.cropFace(_cameraImage, _listFace[0]));
-            setState(() {
-              spoofingScore =1.0;
-            });
-            if (spoofingScore > 0.9) {
-              await _faceVerificationService.setCurrentPrediction(
-                  _cameraImage, _listFace[0]);
-              User? _user = await _faceVerificationService.predict();
-              if (_user != null) {
-                _onPause = true;
-                // _cameraController.stopImageStream();
-                print('----------------Trước');
-                await Get.to(() => HelloScreen(user: _user));
-                print('----------------Sau');
-                _isDetecting = false;
-                _onPause = false;
-                // _cameraController.startImageStream(onLatestImageAvailable);
-              } else {
-                setState(() {
-                  warningMsg = "";
-                });
-              }
+            await _faceVerificationService.setCurrentPrediction(_cameraImage, _listFace[0]);
+            User? _user = await _faceVerificationService.predict();
+            if (_user != null) {
+              _onPause = true;
+              // _cameraController.stopImageStream();
+              print('----------------Trước');
+              await Get.to(() => HelloScreen(user: _user));
+              print('----------------Sau');
+              _isDetecting = false;
+              _onPause = false;
+              // _cameraController.startImageStream(onLatestImageAvailable);
+            } else {
+              setState(() {
+                warningMsg = "";
+              });
             }
             Future.delayed(Duration(seconds: 2),(){
               _isSpoofing = false;
@@ -133,10 +124,8 @@ class _LoginScreenState extends State<LoginScreen> {
           warningMsg = "Chỉ được có 1 gương mặt";
         }
       }
-      // await Future.delayed(Duration(milliseconds: 200));
-      _isDetecting = false;
-    })
-    .whenComplete(() => Future.delayed(Duration(milliseconds: 100), () => _isDetecting = false));
+      Future.delayed(Duration(milliseconds: 1000), () => _isDetecting = false);
+    });
   }
 
   @override
@@ -158,7 +147,6 @@ class _LoginScreenState extends State<LoginScreen> {
               child: Column(
                   children: [
                     Container(
-                      
                       width: Get.width,
                       height: Get.width * _cameraController.value.aspectRatio,
                       child: Stack(
@@ -179,12 +167,20 @@ class _LoginScreenState extends State<LoginScreen> {
                           ),
                           Center(
                             child: Container(
-                              width: 350,
-                              height: 350,
+                              width: 300,
+                              height: 300,
                               decoration: BoxDecoration(
                                   border: Border.all(color: Colors.blue, width: 2)),
                             ),
-                          )
+                          ),
+                          Center(child: Container(
+                            width: 280,
+                            height: 60,
+                            decoration: BoxDecoration(
+                              color: Colors.black87
+                            ),
+                            child: Center(child: Text(warningMsg, style: TextStyle(color: Colors.white),)),
+                          ))
                         ],
                       ),
                     ),
@@ -218,13 +214,6 @@ class _LoginScreenState extends State<LoginScreen> {
             ),
           ),
     );
-  }
-  _done()async{
-    File file = await ImageUtils.saveImage(ImageUtils.cropFace(_cameraImage, _listFace[0]));
-    Get.to(()=>SignupDoneScreen(
-      file: file,
-      predictedData: [],
-    ));
   }
   @override
   void dispose() {
