@@ -1,10 +1,12 @@
 import 'dart:io';
+import 'dart:ui';
 
 import 'package:camera/camera.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_face_demo/screens/signup_done_screen.dart';
 import 'package:flutter_face_demo/services/face_anti_spoofing_serverice.dart';
 import 'package:flutter_face_demo/services/face_verification_service.dart';
+import 'package:flutter_face_demo/services/mask_detection_service.dart';
 import 'package:flutter_face_demo/utils/image_utils.dart';
 import 'package:flutter_face_demo/utils/scanner_utils.dart';
 import 'package:get/get.dart';
@@ -14,7 +16,9 @@ import 'package:sizer/sizer.dart';
 import '../enums.dart';
 import '../helpers/face_dectector_painter.dart';
 import '../models/user.dart';
+import '../widgets/face_scan.dart';
 import 'hello.dart';
+import 'package:image/image.dart' as imageLib;
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({Key? key}) : super(key: key);
@@ -33,14 +37,12 @@ class _LoginScreenState extends State<LoginScreen> {
   late CameraDescription _cameraDescription;
   late Size imageSize;
   late CameraImage _cameraImage;
-  final FaceDetector _faceDetector = GoogleVision.instance
-      .faceDetector(FaceDetectorOptions(enableContours: true));
+  final FaceDetector _faceDetector = GoogleVision.instance.faceDetector(FaceDetectorOptions(enableContours: true));
   List<Face> _listFace = [];
 
-  final FaceAntiSpoofingService _faceAntiSpoofingService =
-      FaceAntiSpoofingService();
-  final FaceVerificationService _faceVerificationService =
-      FaceVerificationService();
+  final MaskDetectionService _maskDetectionService = MaskDetectionService();
+  final FaceAntiSpoofingService _faceAntiSpoofingService = FaceAntiSpoofingService();
+  final FaceVerificationService _faceVerificationService = FaceVerificationService();
 
   int qualityScore = 0;
   String warningMsg = "";
@@ -51,6 +53,7 @@ class _LoginScreenState extends State<LoginScreen> {
   }
 
   initStateAsync() async {
+    await _maskDetectionService.initialize();
     await _faceAntiSpoofingService.initialize();
     await _faceVerificationService.initialize();
     _cameras = await availableCameras();
@@ -71,160 +74,162 @@ class _LoginScreenState extends State<LoginScreen> {
   }
 
   void onLatestImageAvailable(CameraImage _cameraImage) async {
-    // return;
     if (_isDetecting || _onPause) return;
     this._cameraImage = _cameraImage;
     _isDetecting = true;
-    ScannerUtils.detect(
-            image: _cameraImage,
-            detectInImage: _faceDetector.processImage,
-            imageRotation: _cameraDescription.sensorOrientation)
-        .then((dynamic results) async {
-      if (results is List<Face>) {
-        setState(() {
-          _listFace = results;
-        });
-        if (_listFace.length == 1) {
-          qualityScore = _faceAntiSpoofingService
-              .laplacian(ImageUtils.cropFace(_cameraImage, _listFace[0]));
-          // qualityScore = 901;
-          if (qualityScore < 800) warningMsg = "Phát hiện giả mạo";
-          if (800 <= qualityScore && qualityScore <= 900)
-            warningMsg =
-                "Vui lòng đưa lại gần\n hoặc làm sạch camera\n hoặc đưa ra khu vực đủ sáng";
-          if (qualityScore > 900) warningMsg = "ĐANG NHẬN DIỆN";
-          setState(() {
-            qualityScore;
-            warningMsg;
-          });
-          if (qualityScore > 900 && !_isSpoofing) {
-            print('-----------------------');
-            await _faceVerificationService.setCurrentPrediction(
-                _cameraImage, _listFace[0]);
-            User? _user = await _faceVerificationService.predict();
-            if (_user != null) {
-              _onPause = true;
-              setState(() {
-                _isInitialize = true;
-              });
-              if (await _faceAntiSpoofingService.antiSpoofing(
-                      ImageUtils.cropFace(_cameraImage, _listFace[0])) <
-                  0.90) {
-                warningMsg = "Giả mạo";
-              } else {
-                File _image = await ImageUtils.saveImage(
-                    ImageUtils.cropFace(_cameraImage, _listFace[0]));
-                await Get.to(() => HelloScreen(user: _user, image: _image));
-              }
-              setState(() {
-                _isInitialize = false;
-              });
-              _isDetecting = false;
-              _onPause = false;
-            } else {
-              setState(() {
-                warningMsg = "";
-              });
-            }
-            Future.delayed(Duration(seconds: 2), () {
-              _isSpoofing = false;
-            });
-            _isSpoofing = false;
-          }
-        } else {
-          qualityScore = 0;
-          warningMsg = "Chỉ được có 1 gương mặt";
-        }
-      }
-      Future.delayed(Duration(milliseconds: 1000), () => _isDetecting = false);
+    dynamic results = await ScannerUtils.detect(image: _cameraImage, detectInImage: _faceDetector.processImage, imageRotation: _cameraDescription.sensorOrientation);
+    setState(() {
+      _listFace = results;
     });
-  }
 
+    if(_listFace.length!=1){
+      warningMsg = "Chỉ cần có 1 gương mặt";
+      delayDetector();
+      return;
+    }
+    if(_maskDetectionService.detectMask(ImageUtils.cropFace(_cameraImage, _listFace[0]))){
+      warningMsg = "Vui lòng bỏ khẩu trang";
+      delayDetector();
+      return;
+    }
+    qualityScore = _faceAntiSpoofingService.laplacian(ImageUtils.cropFace(_cameraImage, _listFace[0]));
+    // qualityScore = 902;
+    if (qualityScore < 10){
+      warningMsg = "Phát hiện giả mạo";
+      delayDetector();
+      return;
+    }
+    if (10 <= qualityScore && qualityScore <= 700) {
+      warningMsg = "Vui lòng đưa lại gần\n hoặc làm sạch camera\n hoặc đưa ra khu vực đủ sáng";
+      delayDetector();
+      return;
+    }
+    if (qualityScore > 700) warningMsg = "ĐANG NHẬN DIỆN";
+    // double score = await _faceAntiSpoofingService.antiSpoofing( ImageUtils.cropFace(_cameraImage, _listFace[0]));
+    setState(() {
+      qualityScore;
+      warningMsg;
+    });
+    // delayDetector();
+    // return;
+    if (qualityScore > 700 && !_isSpoofing) {
+      print('-----------------------');
+      await _faceVerificationService.setCurrentPrediction(_cameraImage, _listFace[0]);
+      User? _user = await _faceVerificationService.predict();
+      if (_user != null) {
+        _onPause = true;
+        setState(() {
+          _isInitialize = true;
+        });
+        if (await _faceAntiSpoofingService.antiSpoofing(
+            ImageUtils.cropFace(_cameraImage, _listFace[0])) <
+            0.90) {
+          warningMsg = "Giả mạo";
+        } else {
+          File _image = await ImageUtils.saveImage(
+              ImageUtils.cropFace(_cameraImage, _listFace[0]));
+          await Get.to(() => HelloScreen(user: _user, image: _image));
+        }
+        setState(() {
+          _isInitialize = false;
+        });
+        _isDetecting = false;
+        _onPause = false;
+      } else {
+        setState(() {
+          warningMsg = "";
+        });
+      }
+      // Future.delayed(Duration(seconds: 2), () {
+      //   _isSpoofing = false;
+      // });
+      _isSpoofing = false;
+    }
+    delayDetector();
+  }
+  delayDetector(){
+    Future.delayed(Duration(milliseconds: 1000), () => _isDetecting = false);
+  }
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         title: Text('Quét khuôn mặt'),
       ),
+      backgroundColor: Colors.blue,
       body: _isInitialize
           ? Center(
               child: CircularProgressIndicator(
                 valueColor: AlwaysStoppedAnimation<Color>(Color(0xff2196F3)),
               ),
             )
-          : SafeArea(
-              child: Container(
-                width: double.infinity,
-                height: double.infinity,
-                color: Color(0xff2196F3),
-                child: Column(
+          : Column(
+            children: [
+              Container(
+                width: Get.width,
+                height: Get.width * _cameraController.value.aspectRatio,
+                child: Stack(
                   children: [
-                    Container(
-                      width: Get.width,
-                      height: Get.width * _cameraController.value.aspectRatio,
-                      child: Stack(
-                        children: [
-                          Stack(
-                            fit: StackFit.expand,
-                            children: [
-                              CameraPreview(_cameraController),
-                              // if(_listFace.isNotEmpty)
-                              // CustomPaint(
-                              //   painter: FaceDetectorPainter(
-                              //       _listFace[0],
-                              //       imageSize,
-                              //       rotationIntToImageRotation(_cameraDescription.sensorOrientation)
-                              //   ),
-                              // ),
-                            ],
-                          ),
-                          Center(
-                            child: Image.asset(
-                              'assets/icons/round.png',
-                              width: 200.sp,
-                            ),
-                          )
-                        ],
-                      ),
+                    Stack(
+                      fit: StackFit.expand,
+                      children: [
+                        CameraPreview(_cameraController),
+                        // if(_listFace.isNotEmpty)
+                        // CustomPaint(
+                        //   painter: FaceDetectorPainter(
+                        //       _listFace[0],
+                        //       imageSize,
+                        //       rotationIntToImageRotation(_cameraDescription.sensorOrientation)
+                        //   ),
+                        // ),
+                      ],
                     ),
-                    Container(
-                        margin: EdgeInsets.only(top: 50),
-                        padding: EdgeInsets.symmetric(horizontal: 20),
-                        child: Text(
-                          'Vui lòng đưa khuôn mặt vào trong khung',
-                          style: TextStyle(
-                              color: Colors.white,
-                              fontSize: 12.sp,
-                              fontWeight: FontWeight.bold),
-                        )),
-                    Container(
-                        padding: EdgeInsets.symmetric(horizontal: 20),
-                        child: Text(
-                          'và giữ ổn định 3 giây để nhận diện!',
-                          style: TextStyle(
-                              color: Colors.white,
-                              fontSize: 12.sp,
-                              fontWeight: FontWeight.bold),
-                        )),
-                    // Text('Quality score: $qualityScore'),
-                    // Text('Face: ${_listFace.length}'),
-                    // Text(
-                    //   'Warning: $warningMsg',
-                    //   style: TextStyle(color: Colors.red),
+                    // Center(
+                    //   child: Image.asset(
+                    //     'assets/icons/round.png',
+                    //     width: 200.sp,
+                    //   ),
                     // ),
-                    // ElevatedButton(onPressed: (){
-                    //   _done();
-                    // }, child: Text('aa'))
+                    Center(
+                      child: Image.asset("assets/icons/face_frame.png", width: 300,),
+                    ),
                   ],
                 ),
               ),
-            ),
+              Container(
+                  margin: EdgeInsets.only(top: 50),
+                  padding: EdgeInsets.symmetric(horizontal: 20),
+                  child: Text(
+                    'Vui lòng đưa khuôn mặt vào trong khung\nvà giữ ổn định để nhận diện',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 12.sp,
+                        fontWeight: FontWeight.bold),
+                  )),
+              Text('Quality score: $qualityScore'),
+              // Text('Face: ${_listFace.length}'),
+              Text(
+                'Warning: $warningMsg',
+                style: TextStyle(color: Colors.red),
+              ),
+              ElevatedButton(onPressed: (){
+                _done();
+              }, child: Text('aa'))
+            ],
+          ),
     );
+  }
+  _done()async{
+    var img = ImageUtils.cropFace(_cameraImage,_listFace[0]);
+    var file = await ImageUtils.saveImage(img);
+    Get.to(HelloScreen(user: User(user: "test", modelData: []), image: file));
   }
 
   @override
   void dispose() {
     _faceDetector.close();
+    _maskDetectionService.dispose();
     _faceVerificationService.dispose();
     _faceAntiSpoofingService.dispose();
     if (_cameraController.hasListeners) _cameraController.stopImageStream();

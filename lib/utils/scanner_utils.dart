@@ -9,14 +9,6 @@ import 'package:flutter/foundation.dart';
 class ScannerUtils {
   ScannerUtils._();
 
-  // static Future<CameraDescription> getCamera(CameraLensDirection dir) async {
-  //   return availableCameras().then(
-  //         (List<CameraDescription> cameras) => cameras.firstWhere(
-  //           (CameraDescription camera) => camera.lensDirection == dir,
-  //     ),
-  //   );
-  // }
-
   static Future<dynamic> detect({
     required CameraImage image,
     required Future<dynamic> Function(GoogleVisionImage image) detectInImage,
