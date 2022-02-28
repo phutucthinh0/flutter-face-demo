@@ -5,6 +5,7 @@ import 'package:image/image.dart' as imageLib;
 
 class MaskDetectionService {
   late Interpreter _interpreter;
+  double score = 0;
   final ImageProcessor _imageProcessor = ImageProcessorBuilder()
       .add(ResizeOp(224,224, ResizeMethod.NEAREST_NEIGHBOUR))
       .build();
@@ -18,16 +19,34 @@ class MaskDetectionService {
       print(e);
     }
   }
-  bool detectMask(imageLib.Image image){
+  MaskDetectorState detectMask(imageLib.Image image){
     TensorImage _inputImage = TensorImage(TfLiteType.float32);
     _inputImage.loadImage(image);
     _inputImage = _imageProcessor.process(_inputImage);
     TensorBuffer _outputBuffer = TensorBuffer.createFixedSize([1,2], TfLiteType.float32);
     List _output = [[0.0,0.0]];
     _interpreter.run(_inputImage.buffer, _output);
-    return _output[0][0]>_output[0][1];
+    bool detect = _output[0][0]>_output[0][1];
+    if(detect){
+      //have mask
+      if(score<5){
+        score++;
+        return MaskDetectorState.suspecting;
+      }else{
+        return MaskDetectorState.haveMask;
+      }
+    }else{
+      //no mask
+      score = 0;
+      return MaskDetectorState.noMask;
+    }
   }
   dispose() {
     _interpreter.close();
   }
+}
+enum MaskDetectorState{
+  noMask,
+  haveMask,
+  suspecting
 }

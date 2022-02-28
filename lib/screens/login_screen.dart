@@ -86,15 +86,18 @@ class _LoginScreenState extends State<LoginScreen> {
       delayDetector();
       return;
     }
-    // _faceNetService.setCurrentPrediction(_cameraImage, _listFace[0]);
-
-    if(_maskDetectionService.detectMask(ImageUtils.cropFace(_cameraImage, _listFace[0]))){
+    var _maskState = _maskDetectionService.detectMask(ImageUtils.cropFace(_cameraImage, _listFace[0]));
+    if(_maskState == MaskDetectorState.suspecting){
+      delayDetector();
+      return;
+    }
+    if(_maskState == MaskDetectorState.haveMask){
       warningMsg = "Vui lòng bỏ khẩu trang";
       delayDetector();
       return;
     }
-    // qualityScore = _faceAntiSpoofingService.laplacian(ImageUtils.cropFace(_cameraImage, _listFace[0]));
-    qualityScore = 902;
+    qualityScore = _faceAntiSpoofingService.laplacian(ImageUtils.cropFace(_cameraImage, _listFace[0]));
+    // qualityScore = 902;
     if (qualityScore < 10){
       warningMsg = "Phát hiện giả mạo";
       delayDetector();
@@ -122,13 +125,10 @@ class _LoginScreenState extends State<LoginScreen> {
         setState(() {
           _isInitialize = true;
         });
-        if (await _faceAntiSpoofingService.antiSpoofing(
-            ImageUtils.cropFace(_cameraImage, _listFace[0])) <
-            0.90) {
+        if (await _faceAntiSpoofingService.antiSpoofing(ImageUtils.cropFace(_cameraImage, _listFace[0])) < 0.90) {
           warningMsg = "Giả mạo";
         } else {
-          File _image = await ImageUtils.saveImage(
-              ImageUtils.cropFace(_cameraImage, _listFace[0]));
+          File _image = await ImageUtils.saveImage(ImageUtils.cropFace(_cameraImage, _listFace[0]));
           await Get.to(() => HelloScreen(user: _user, image: _image));
         }
         setState(() {
