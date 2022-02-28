@@ -116,6 +116,11 @@ class _SignupScreenState extends State<SignupScreen> {
       List<Offset> _listPoint = _listFace[0].getContour(FaceContourType.noseBottom)!.positionsList;
       double leftPoint = _listPoint[1].dx - _listPoint[0].dx;
       double rightPoint = _listPoint[2].dx - _listPoint[1].dx;
+      if(GetPlatform.isIOS){
+        double _temp= leftPoint;
+        leftPoint = rightPoint;
+        rightPoint = _temp;
+      }
       switch (_listModeldata.length) {
         case 0:
           {
