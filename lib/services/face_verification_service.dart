@@ -12,7 +12,7 @@ import '../utils/image_utils.dart';
 
 class FaceVerificationService {
   late Interpreter _interpreter;
-  double threshold = 0.6;
+  double threshold = 0.8 ;
 
   late List _predictedData;
 
@@ -47,22 +47,15 @@ class FaceVerificationService {
 
   Float32List preProcess(CameraImage image, Face faceDetected) {
     imageLib.Image croppedImage = ImageUtils.cropFace(image, faceDetected);
-    imageLib.Image img = imageLib.copyResizeCropSquare(croppedImage, 112);
-    Float32List imageAsList = imageToByteListFloat32(img);
+    croppedImage = imageLib.copyResizeCropSquare(croppedImage, 112);
+    Float32List imageAsList = imageToByteListFloat32(croppedImage);
     return imageAsList;
-  }
-
-  imageLib.Image _convertCameraImage(CameraImage image) {
-    imageLib.Image img = ImageUtils.convertCameraImage(image)!;
-    imageLib.Image img1 = imageLib.copyRotate(img , ImageUtils.imageRotation);
-    return img1;
   }
 
   Float32List imageToByteListFloat32(imageLib.Image image) {
     var convertedBytes = Float32List(1 * 112 * 112 * 3);
     var buffer = Float32List.view(convertedBytes.buffer);
     int pixelIndex = 0;
-
     for (var i = 0; i < 112; i++) {
       for (var j = 0; j < 112; j++) {
         var pixel = image.getPixel(j, i);

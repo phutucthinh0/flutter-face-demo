@@ -1,9 +1,7 @@
 import 'dart:io';
-import 'dart:ui';
 
 import 'package:camera/camera.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_face_demo/screens/signup_done_screen.dart';
 import 'package:flutter_face_demo/services/face_anti_spoofing_serverice.dart';
 import 'package:flutter_face_demo/services/face_verification_service.dart';
 import 'package:flutter_face_demo/services/mask_detection_service.dart';
@@ -55,6 +53,7 @@ class _LoginScreenState extends State<LoginScreen> {
   initStateAsync() async {
     await _maskDetectionService.initialize();
     await _faceAntiSpoofingService.initialize();
+    // await _faceNetService.initialize();
     await _faceVerificationService.initialize();
     _cameras = await availableCameras();
     _cameraDescription = _cameras.firstWhere(
@@ -87,13 +86,15 @@ class _LoginScreenState extends State<LoginScreen> {
       delayDetector();
       return;
     }
+    // _faceNetService.setCurrentPrediction(_cameraImage, _listFace[0]);
+
     if(_maskDetectionService.detectMask(ImageUtils.cropFace(_cameraImage, _listFace[0]))){
       warningMsg = "Vui lòng bỏ khẩu trang";
       delayDetector();
       return;
     }
-    qualityScore = _faceAntiSpoofingService.laplacian(ImageUtils.cropFace(_cameraImage, _listFace[0]));
-    // qualityScore = 902;
+    // qualityScore = _faceAntiSpoofingService.laplacian(ImageUtils.cropFace(_cameraImage, _listFace[0]));
+    qualityScore = 902;
     if (qualityScore < 10){
       warningMsg = "Phát hiện giả mạo";
       delayDetector();
@@ -137,7 +138,7 @@ class _LoginScreenState extends State<LoginScreen> {
         _onPause = false;
       } else {
         setState(() {
-          warningMsg = "";
+          warningMsg = "Null";
         });
       }
       // Future.delayed(Duration(seconds: 2), () {
@@ -231,6 +232,7 @@ class _LoginScreenState extends State<LoginScreen> {
     _faceDetector.close();
     _maskDetectionService.dispose();
     _faceVerificationService.dispose();
+    // _faceNetService.dispose();
     _faceAntiSpoofingService.dispose();
     if (_cameraController.hasListeners) _cameraController.stopImageStream();
     super.dispose();
