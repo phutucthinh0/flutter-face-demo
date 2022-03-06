@@ -23,6 +23,7 @@ class _SignupScreenState extends State<SignupScreen> {
   bool _isInitialize = true;
   bool _isDetecting = false;
   bool _isSucess = false;
+  bool _showDebug = false;
   late List<CameraDescription> _cameras;
   late CameraController _cameraController;
   late CameraDescription _cameraDescription;
@@ -51,7 +52,7 @@ class _SignupScreenState extends State<SignupScreen> {
       (CameraDescription camera) =>
           camera.lensDirection == CameraLensDirection.front,
     );
-    _cameraController = CameraController(_cameraDescription, ResolutionPreset.low, enableAudio: false);
+    _cameraController = CameraController(_cameraDescription, ResolutionPreset.max, enableAudio: false);
     await _cameraController.initialize();
     ImageUtils.setImageRotation(_cameraDescription);
     imageSize = _cameraController.value.previewSize!;
@@ -192,47 +193,52 @@ class _SignupScreenState extends State<SignupScreen> {
               children: [
                 SizedBox(
                   width: Get.width,
-                  height: Get.width * _cameraController.value.aspectRatio,
-                  child: Stack(
-                    children: [
-                      Stack(
-                        fit: StackFit.expand,
+                  height: Get.width*352/288,
+                  child: FittedBox(
+                    fit: BoxFit.cover,
+                    clipBehavior: Clip.hardEdge,
+                    child: SizedBox(
+                      width: Get.width,
+                      height: Get.width * _cameraController.value.aspectRatio,
+                      child: Stack(
                         children: [
-                          CameraPreview(_cameraController),
-                          // if (_listFace.isNotEmpty)
-                          //   CustomPaint(
-                          //     painter: FaceDetectorPainter(_listFace[0], imageSize, rotationIntToImageRotation(_cameraDescription.sensorOrientation)),
-                          //   ),
-                        ],
-                      ),
-                      Center(
-                        child: Image.asset("assets/icons/face_frame.png", width: 300,),
-                      ),
-                      Center(
-                        child: Container(
-                          width: 350,
-                          height: 410,
-                          decoration: BoxDecoration(
-                              border: Border.all(color: Colors.blue, width: 2)),
-                          child: Align(
-                            alignment: Alignment.bottomCenter,
+                          Stack(
+                            fit: StackFit.expand,
+                            children: [
+                              CameraPreview(_cameraController),
+                              // if (_listFace.isNotEmpty)
+                              //   CustomPaint(
+                              //     painter: FaceDetectorPainter(_listFace[0], imageSize, rotationIntToImageRotation(_cameraDescription.sensorOrientation)),
+                              //   ),
+                            ],
+                          ),
+                          Center(
                             child: Container(
-                              width: 348,
-                              height: 60,
+                              width: 350,
+                              height: 410,
                               decoration: BoxDecoration(
-                                  border: Border.all(
-                                    color: Colors.black,
-                                    width: 2,
-                                  ),
-                                  color: Colors.black87),
-                              child: Center(
-                                  child: Text(warningMsg,
-                                      style: const TextStyle(color: Colors.white))),
+                                  border: Border.all(color: Colors.blue, width: 2)),
+                              child: Align(
+                                alignment: Alignment.bottomCenter,
+                                child: Container(
+                                  width: 348,
+                                  height: 60,
+                                  decoration: BoxDecoration(
+                                      border: Border.all(
+                                        color: Colors.black,
+                                        width: 2,
+                                      ),
+                                      color: Colors.black87),
+                                  child: Center(
+                                      child: Text(warningMsg,
+                                          style: const TextStyle(color: Colors.white))),
+                                ),
+                              ),
                             ),
                           ),
-                        ),
+                        ],
                       ),
-                    ],
+                    ),
                   ),
                 ),
                 const SizedBox(height: 20),

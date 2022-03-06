@@ -3,17 +3,19 @@ import 'dart:typed_data';
 import 'dart:ui';
 
 import 'package:camera/camera.dart';
+import 'package:flutter/material.dart';
 import 'package:google_ml_vision/google_ml_vision.dart';
 import 'package:flutter/foundation.dart';
 
 class ScannerUtils {
   ScannerUtils._();
-
+  static int imageRotation = 270;
   static Future<dynamic> detect({
     required CameraImage image,
     required Future<dynamic> Function(GoogleVisionImage image) detectInImage,
     required int imageRotation,
   }) async {
+
     return detectInImage(
       GoogleVisionImage.fromBytes(
         _concatenatePlanes(image.planes),
@@ -21,6 +23,7 @@ class ScannerUtils {
       ),
     );
   }
+
 
   static Uint8List _concatenatePlanes(List<Plane> planes) {
     final WriteBuffer allBytes = WriteBuffer();

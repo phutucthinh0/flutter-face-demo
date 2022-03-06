@@ -11,7 +11,11 @@ class FaceAntiSpoofingService{
   final int LAPLACIAN_THRESHOLD = 1000;
   late Interpreter _interpreter;
   FaceAntiSpoofingService();
-  Future initialize() async {
+  Future initialize([int? interpreterAddress]) async {
+    if(interpreterAddress != null){
+      _interpreter = Interpreter.fromAddress(interpreterAddress);
+      return;
+    }
     try {
       InterpreterOptions _in = InterpreterOptions();
       _in.threads = 4;
@@ -22,7 +26,7 @@ class FaceAntiSpoofingService{
       print(e);
     }
   }
-  Future<double> antiSpoofing (imageLib.Image preImage) async {
+  double antiSpoofing (imageLib.Image preImage) {
     final inputImage = imageLib.copyResizeCropSquare(preImage, 256);
     final List img = normalizeImage(inputImage);
     var input = [img.reshape([1,256,256,3])];
@@ -83,6 +87,7 @@ class FaceAntiSpoofingService{
     }
     return score;
   }
+  Interpreter get interpreter => _interpreter;
   dispose(){
     _interpreter.close();
   }

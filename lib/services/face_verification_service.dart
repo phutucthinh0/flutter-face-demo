@@ -12,13 +12,17 @@ import '../utils/image_utils.dart';
 
 class FaceVerificationService {
   late Interpreter _interpreter;
-  double threshold = 0.8 ;
+  double threshold = 0.8;
 
   late List _predictedData;
 
   List get predictedData => _predictedData;
 
-  Future initialize() async {
+  Future initialize([int? interpreterAddress]) async {
+    if(interpreterAddress != null){
+      _interpreter = Interpreter.fromAddress(interpreterAddress);
+      return;
+    }
     try {
       _interpreter = await Interpreter.fromAsset("mobilefacenet.tflite");
       print('model loaded successfully');
@@ -39,10 +43,6 @@ class FaceVerificationService {
 
     _predictedData = List.from(output);
     return _predictedData;
-  }
-
-  Future<User?> predict() async {
-    return _searchResult(_predictedData);
   }
 
   Float32List preProcess(CameraImage image, Face faceDetected) {
@@ -67,14 +67,13 @@ class FaceVerificationService {
     return convertedBytes.buffer.asFloat32List();
   }
 
-  User? _searchResult(List predictedData){
-    List<User> users = FBRealtime.users;
+  User? predict(List<User> users){
     double minDist = 999;
     double currDist = 0.0;
     User? predictedResult;
 
     for (User u in users) {
-      currDist = _euclideanDistance(u.modelData, predictedData);
+      currDist = _euclideanDistance(u.modelData, _predictedData);
       if (currDist <= threshold && currDist < minDist) {
         minDist = currDist;
         predictedResult = u;
@@ -94,6 +93,7 @@ class FaceVerificationService {
   void setPredictedData(value) {
     this._predictedData = value;
   }
+  Interpreter get interpreter => _interpreter;
   dispose() {
     _interpreter.close();
   }

@@ -106,10 +106,14 @@ class ImageUtils {
   static imageLib.Image cropFace(CameraImage image, Face faceDetected) {
     imageLib.Image convertedImage = convertCameraImage(image)!;
     convertedImage = imageLib.copyRotate(convertedImage , ImageUtils.imageRotation);
-    double x = faceDetected.boundingBox.left - 10.0;
-    double y = faceDetected.boundingBox.top - 10.0;
-    double w = faceDetected.boundingBox.width + 10.0;
-    double h = faceDetected.boundingBox.height + 10.0;
+    // double x = faceDetected.boundingBox.left - 10.0;
+    // double y = faceDetected.boundingBox.top - 10.0;
+    // double w = faceDetected.boundingBox.width + 10.0;
+    // double h = faceDetected.boundingBox.height + 10.0;
+    double x = faceDetected.boundingBox.left;
+    double y = faceDetected.boundingBox.top;
+    double w = faceDetected.boundingBox.width;
+    double h = faceDetected.boundingBox.height;
     return imageLib.copyCrop(convertedImage, x.round(), y.round(), w.round(), h.round());
   }
 }
