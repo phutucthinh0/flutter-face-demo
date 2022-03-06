@@ -30,6 +30,8 @@ class LoginScreen extends StatefulWidget {
 
 class _LoginScreenState extends State<LoginScreen> with WidgetsBindingObserver{
   bool _showDebug = false;
+  bool _onBackPress = false;
+
   bool _isInitialize = true;
   bool _isDetecting = false;
   late List<CameraDescription> _cameras;
@@ -76,6 +78,10 @@ class _LoginScreenState extends State<LoginScreen> with WidgetsBindingObserver{
 
   void onLatestImageAvailable(CameraImage _cameraImage) async {
     if (_isDetecting) return;
+    if(_onBackPress){
+      Get.back();
+      return;
+    }
     this._cameraImage = _cameraImage;
     _isDetecting = true;
     var startTime = DateTime.now();
@@ -106,6 +112,7 @@ class _LoginScreenState extends State<LoginScreen> with WidgetsBindingObserver{
     ReceivePort responsePort = ReceivePort();
     isolateUtils.sendPort.send(isolateData..responsePort = responsePort.sendPort);
     var response = await responsePort.first;
+
     var _maskState = response['maskResults'];
     if(_maskState == MaskDetectorState.suspecting){
       warningMsg = "Nghi ngờ";
@@ -114,16 +121,16 @@ class _LoginScreenState extends State<LoginScreen> with WidgetsBindingObserver{
     }
     if(_maskState == MaskDetectorState.haveMask){
       setState(() {
-        cautionMsg = "Vui lòng tháo khẩu trang";
+        cautionMsg = "Vui lòng để toàn bổ gương mặt trong khung, tháo khẩu trang (nếu có)";
       });
       delayDetector();
       return;
     }
     laplacianScore = response['laplacian'];
-    if(laplacianScore<100){
+    if(laplacianScore<200){
       setState(() {
         laplacianScore;
-        cautionMsg = "Phát hiện giả mạo";
+        cautionMsg = "Hình ảnh mờ, hoặc không rõ ràng.\nVui lòng giữ ổn định";
       });
       delayDetector();
       return;
@@ -214,120 +221,126 @@ class _LoginScreenState extends State<LoginScreen> with WidgetsBindingObserver{
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text('Quét khuôn mặt'),
-        actions: [
-          IconButton(
-            onPressed: (){
-              setState(() {
-                _showDebug = !_showDebug;
-              });
-            },
-            icon: _showDebug?Icon(Icons.visibility):Icon(Icons.visibility_off),
-          )
-        ],
-      ),
-      backgroundColor: Colors.blue,
-      body: _isInitialize
-          ? Center(
-              child: CircularProgressIndicator(
-                valueColor: AlwaysStoppedAnimation<Color>(Color(0xff2196F3)),
-              ),
+    return WillPopScope(
+      onWillPop: () async {
+        _onBackPress = true;
+        return false;
+      },
+      child: Scaffold(
+        appBar: AppBar(
+          title: Text('Quét khuôn mặt'),
+          actions: [
+            IconButton(
+              onPressed: (){
+                setState(() {
+                  _showDebug = !_showDebug;
+                });
+              },
+              icon: _showDebug?Icon(Icons.visibility):Icon(Icons.visibility_off),
             )
-          : Column(
-              children: [
-                Stack(
-                  children: [
-                    SizedBox(
-                      width: Get.width,
-                      height: Get.width*352/288,
-                      child: FittedBox(
-                        fit: BoxFit.cover,
-                        clipBehavior: Clip.hardEdge,
-                        child: SizedBox(
-                          width: Get.width,
-                          height: Get.width * _cameraController.value.aspectRatio,
-                          child: Stack(
-                            fit: StackFit.expand,
-                            children: [
-                              CameraPreview(_cameraController),
-                              // if(_listFace.isNotEmpty)
-                              // CustomPaint(
-                              //   painter: FaceDetectorPainter(
-                              //       _listFace[0],
-                              //       imageSize,
-                              //       rotationIntToImageRotation(_cameraDescription.sensorOrientation)
-                              //   ),
-                              // ),
-                              Center(
-                                child: Container(
-                                  width: Get.width -80,
-                                  height: Get.width -50,
-                                  decoration: BoxDecoration(
-                                      border: Border.all(color: Colors.blue, width: 2)
+          ],
+        ),
+        backgroundColor: Colors.blue,
+        body: _isInitialize
+            ? Center(
+                child: CircularProgressIndicator(
+                  valueColor: AlwaysStoppedAnimation<Color>(Color(0xff2196F3)),
+                ),
+              )
+            : Column(
+                children: [
+                  Stack(
+                    children: [
+                      SizedBox(
+                        width: Get.width,
+                        height: Get.width*352/288,
+                        child: FittedBox(
+                          fit: BoxFit.cover,
+                          clipBehavior: Clip.hardEdge,
+                          child: SizedBox(
+                            width: Get.width,
+                            height: Get.width * _cameraController.value.aspectRatio,
+                            child: Stack(
+                              fit: StackFit.expand,
+                              children: [
+                                CameraPreview(_cameraController),
+                                // if(_listFace.isNotEmpty)
+                                // CustomPaint(
+                                //   painter: FaceDetectorPainter(
+                                //       _listFace[0],
+                                //       imageSize,
+                                //       rotationIntToImageRotation(_cameraDescription.sensorOrientation)
+                                //   ),
+                                // ),
+                                Center(
+                                  child: Container(
+                                    width: Get.width -80,
+                                    height: Get.width -50,
+                                    decoration: BoxDecoration(
+                                        border: Border.all(color: Colors.blue, width: 2)
+                                    ),
                                   ),
                                 ),
-                              ),
-                              if(cautionMsg.isNotEmpty)
-                              Center(
-                                child: Container(
-                                  width: Get.width -80,
-                                  height: Get.width -50,
-                                  padding: EdgeInsets.all(10),
-                                  decoration: BoxDecoration(
-                                      color: Colors.black87,
+                                if(cautionMsg.isNotEmpty)
+                                Center(
+                                  child: Container(
+                                    width: Get.width -80,
+                                    height: Get.width -50,
+                                    padding: EdgeInsets.all(10),
+                                    decoration: BoxDecoration(
+                                        color: Colors.black87,
+                                    ),
+                                    child: Column(
+                                        mainAxisAlignment: MainAxisAlignment.center,
+                                        crossAxisAlignment: CrossAxisAlignment.center,
+                                        children: [
+                                      Icon(Icons.warning_amber, color: Colors.red, size: 80,),
+                                      SizedBox(height: 10),
+                                      Text(cautionMsg, style: TextStyle(color: Colors.red, fontSize: 20), textAlign: TextAlign.center,)
+                                    ]),
                                   ),
-                                  child: Column(
-                                      mainAxisAlignment: MainAxisAlignment.center,
-                                      crossAxisAlignment: CrossAxisAlignment.center,
-                                      children: [
-                                    Icon(Icons.warning_amber, color: Colors.red, size: 80,),
-                                    SizedBox(height: 10),
-                                    Text(cautionMsg, style: TextStyle(color: Colors.red, fontSize: 20), textAlign: TextAlign.center,)
-                                  ]),
-                                ),
-                              )
-                            ],
+                                )
+                              ],
+                            ),
                           ),
                         ),
                       ),
-                    ),
 
-                  ],
-                ),
-                Container(
-                    margin: EdgeInsets.only(top: 50),
-                    padding: EdgeInsets.symmetric(horizontal: 20),
-                    child: Text(
-                      'Vui lòng đưa khuôn mặt vào trong khung\nvà giữ ổn định để nhận diện',
-                      textAlign: TextAlign.center,
-                      style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 12.sp,
-                          fontWeight: FontWeight.bold),
-                    )),
-                if(_showDebug)Column(children: [
-                  Text('Laplacian score: $laplacianScore'),
-                  Text('Spoofing score: $spoofingScore'),
-                  Text('Estimated Time: $estimatedTime'),
-                  Text(
-                    'Warning: $warningMsg',
-                    style: TextStyle(color: Colors.red),
+                    ],
                   ),
-                  ElevatedButton(
-                      onPressed: () async {
-                        _done();
-                        // await dialogAnimationWrapper(
-                        //     context: context,
-                        //     slideFrom: 'bottom',
-                        //     backgroundColor: Colors.transparent,
-                        //     child: DialogFaceFake());
-                      },
-                      child: Text('Test'))
-                ],)
-              ],
-            ),
+                  Container(
+                      margin: EdgeInsets.only(top: 50),
+                      padding: EdgeInsets.symmetric(horizontal: 20),
+                      child: Text(
+                        'Vui lòng đưa khuôn mặt vào trong khung\nvà giữ ổn định để nhận diện',
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 12.sp,
+                            fontWeight: FontWeight.bold),
+                      )),
+                  if(_showDebug)Column(children: [
+                    Text('Laplacian score: $laplacianScore'),
+                    Text('Spoofing score: $spoofingScore'),
+                    Text('Estimated Time: $estimatedTime'),
+                    Text(
+                      'Warning: $warningMsg',
+                      style: TextStyle(color: Colors.red),
+                    ),
+                    ElevatedButton(
+                        onPressed: () async {
+                          _done();
+                          // await dialogAnimationWrapper(
+                          //     context: context,
+                          //     slideFrom: 'bottom',
+                          //     backgroundColor: Colors.transparent,
+                          //     child: DialogFaceFake());
+                        },
+                        child: Text('Test'))
+                  ],)
+                ],
+              ),
+      ),
     );
   }
 
@@ -339,6 +352,7 @@ class _LoginScreenState extends State<LoginScreen> with WidgetsBindingObserver{
 
   @override
   void dispose() {
+    isolateUtils.dispose();
     _faceDetector.close();
     _maskDetectionService.dispose();
     _faceVerificationService.dispose();

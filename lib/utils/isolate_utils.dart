@@ -7,7 +7,6 @@ import 'package:flutter_face_demo/services/face_verification_service.dart';
 import 'package:flutter_face_demo/utils/image_utils.dart';
 import 'package:google_ml_vision/google_ml_vision.dart';
 import 'package:image/image.dart' as imageLib;
-import 'package:tflite_flutter/tflite_flutter.dart';
 
 import '../models/user.dart';
 import '../services/mask_detection_service.dart';
@@ -19,7 +18,6 @@ class IsolateUtils {
   late Isolate _isolate;
   final ReceivePort _receivePort = ReceivePort();
   late SendPort _sendPort;
-
   SendPort get sendPort => _sendPort;
 
   void start() async {
@@ -29,6 +27,9 @@ class IsolateUtils {
       debugName: DEBUG_NAME,
     );
     _sendPort = await _receivePort.first;
+  }
+  void dispose(){
+    _isolate.kill();
   }
 
   static void entryPoint(SendPort sendPort) async {
@@ -48,9 +49,9 @@ class IsolateUtils {
         int laplacian = 0;
         double spoofingResults = 0;
         User? user;
-        if(maskResults != MaskDetectorState.noMask){
+        if(maskResults == MaskDetectorState.noMask){
           laplacian = faceAntiSpoofingService.laplacian(inputImage);
-          if (laplacian >100){
+          if (laplacian >200){
             spoofingResults = faceAntiSpoofingService.antiSpoofing(inputImage);
             faceVerificationService.setCurrentPrediction(isolateData.cameraImage, isolateData.face);
             user = faceVerificationService.predict(isolateData.users);
