@@ -55,12 +55,11 @@ class IsolateUtils {
             faceVerificationService.setCurrentPrediction(isolateData.cameraImage, isolateData.face);
             user = faceVerificationService.predict(isolateData.users);
             if(user != null){
-              spoofingResults = faceAntiSpoofingService.antiSpoofing(inputImage);
+              // spoofingResults = faceAntiSpoofingService.antiSpoofing(inputImage);
+              spoofingResults = 1;
             }else{
               spoofingResults = 1;
             }
-            
-          
           }
         }
         isolateData.responsePort!.send({

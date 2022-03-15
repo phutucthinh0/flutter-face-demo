@@ -104,7 +104,7 @@ class _SignupScreenState extends State<SignupScreen> {
 
   void onSignup() async {
     if (_isSucess) return;
-    if (_listModeldata.length >= 3) {
+    if (_listModeldata.length >= 1) {
       _isSucess = true;
       warningMsg = "Hoàn tất đăng kí, đợi trong giây lát";
       Future.delayed(const Duration(seconds: 2), () {

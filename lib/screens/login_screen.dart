@@ -56,6 +56,7 @@ class _LoginScreenState extends State<LoginScreen> with WidgetsBindingObserver{
     super.initState();
     WidgetsBinding.instance!.addObserver(this);
     initStateAsync();
+    FBRealtime.readAllUsers();
   }
 
   initStateAsync() async {
