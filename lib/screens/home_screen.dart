@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_face_demo/data/firebase_database.dart';
+import 'package:flutter_face_demo/data/local_database.dart';
 import 'package:flutter_face_demo/screens/login_screen.dart';
 import 'package:flutter_face_demo/screens/signup_screen.dart';
 import 'package:flutter_face_demo/widgets/opacity_button.dart';
@@ -23,6 +24,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   void initState() {
+    localDatabase.initialize();
     FBRealtime.initialize();
     _timer = Timer.periodic(Duration(seconds: 1), (timer) {
       setState(() {

@@ -56,6 +56,7 @@ class _LoginScreenState extends State<LoginScreen> with WidgetsBindingObserver{
     super.initState();
     WidgetsBinding.instance!.addObserver(this);
     initStateAsync();
+    FBRealtime.readAllUsers();
   }
 
   initStateAsync() async {
@@ -287,9 +288,6 @@ class _LoginScreenState extends State<LoginScreen> with WidgetsBindingObserver{
                                     width: Get.width -80,
                                     height: Get.width -50,
                                     padding: EdgeInsets.all(10),
-                                    decoration: BoxDecoration(
-                                        color: Colors.black87,
-                                    ),
                                     child: Column(
                                         mainAxisAlignment: MainAxisAlignment.center,
                                         crossAxisAlignment: CrossAxisAlignment.center,

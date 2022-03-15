@@ -52,9 +52,14 @@ class IsolateUtils {
         if(maskResults == MaskDetectorState.noMask){
           laplacian = faceAntiSpoofingService.laplacian(inputImage);
           if (laplacian >200){
-            spoofingResults = faceAntiSpoofingService.antiSpoofing(inputImage);
             faceVerificationService.setCurrentPrediction(isolateData.cameraImage, isolateData.face);
             user = faceVerificationService.predict(isolateData.users);
+            if(user != null){
+              // spoofingResults = faceAntiSpoofingService.antiSpoofing(inputImage);
+              spoofingResults = 1;
+            }else{
+              spoofingResults = 1;
+            }
           }
         }
         isolateData.responsePort!.send({

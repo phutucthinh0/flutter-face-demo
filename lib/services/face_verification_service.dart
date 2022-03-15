@@ -12,7 +12,7 @@ import '../utils/image_utils.dart';
 
 class FaceVerificationService {
   late Interpreter _interpreter;
-  double threshold = 0.8;
+  double threshold = 0.5;
 
   late List _predictedData;
 
