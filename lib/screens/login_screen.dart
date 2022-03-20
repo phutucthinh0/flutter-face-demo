@@ -126,7 +126,7 @@ class _LoginScreenState extends State<LoginScreen> with WidgetsBindingObserver{
     }
     if(_maskState == MaskDetectorState.haveMask){
       setState(() {
-        cautionMsg = "Vui lòng để toàn bổ gương mặt trong khung, tháo khẩu trang (nếu có)";
+        cautionMsg = "Vui lòng để toàn bộ gương mặt trong khung, tháo khẩu trang (nếu có)";
       });
       delayDetector();
       return;
@@ -329,16 +329,16 @@ class _LoginScreenState extends State<LoginScreen> with WidgetsBindingObserver{
                       'Warning: $warningMsg',
                       style: TextStyle(color: Colors.red),
                     ),
-                    ElevatedButton(
-                        onPressed: () async {
-                          _done();
-                          // await dialogAnimationWrapper(
-                          //     context: context,
-                          //     slideFrom: 'bottom',
-                          //     backgroundColor: Colors.transparent,
-                          //     child: DialogFaceFake());
-                        },
-                        child: Text('Test'))
+                    // ElevatedButton(
+                    //     onPressed: () async {
+                    //       _done();
+                    //       // await dialogAnimationWrapper(
+                    //       //     context: context,
+                    //       //     slideFrom: 'bottom',
+                    //       //     backgroundColor: Colors.transparent,
+                    //       //     child: DialogFaceFake());
+                    //     },
+                    //     child: Text('Test'))
                   ],)
                 ],
               ),

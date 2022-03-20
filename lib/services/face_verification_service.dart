@@ -28,7 +28,7 @@ class FaceVerificationService {
       print('model loaded successfully');
     } catch (e) {
       print('Failed to load model.');
-      print(e);
+      // print(e);
     }
   }
 
@@ -68,7 +68,7 @@ class FaceVerificationService {
   }
 
   User? predict(List<User> users){
-    double minDist = 999;
+    double minDist = 900;
     double currDist = 0.0;
     User? predictedResult;
 
