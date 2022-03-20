@@ -1,10 +1,13 @@
 import 'dart:io';
 import 'dart:math';
 
+
 import 'package:camera/camera.dart';
+import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:google_ml_vision/google_ml_vision.dart';
 import 'package:image/image.dart' as imageLib;
+import 'package:image/image.dart' show Point;
 import 'package:path_provider/path_provider.dart';
 
 /// ImageUtils
@@ -106,14 +109,22 @@ class ImageUtils {
   static imageLib.Image cropFace(CameraImage image, Face faceDetected) {
     imageLib.Image convertedImage = convertCameraImage(image)!;
     convertedImage = imageLib.copyRotate(convertedImage , ImageUtils.imageRotation);
-    // double x = faceDetected.boundingBox.left - 10.0;
-    // double y = faceDetected.boundingBox.top - 10.0;
-    // double w = faceDetected.boundingBox.width + 10.0;
-    // double h = faceDetected.boundingBox.height + 10.0;
-    double x = faceDetected.boundingBox.left;
-    double y = faceDetected.boundingBox.top;
-    double w = faceDetected.boundingBox.width;
-    double h = faceDetected.boundingBox.height;
-    return imageLib.copyCrop(convertedImage, x.round(), y.round(), w.round(), h.round());
+    // double x = faceDetected.boundingBox.left;
+    // double y = faceDetected.boundingBox.top;
+    // double w = faceDetected.boundingBox.width;
+    // double h = faceDetected.boundingBox.height;
+
+    List<Offset> _listOffset = faceDetected.getContour(FaceContourType.face)!.positionsList;
+    double x = _listOffset[28].dx;
+    double y = _listOffset[0].dy;
+    double w =  _listOffset[9].dx -  _listOffset[28].dx;
+    double h =  _listOffset[18].dy - _listOffset[0].dy;
+
+    convertedImage = imageLib.copyCrop(convertedImage, x.round(), y.round(), w.round(), h.round());
+    // Offset offset = faceDetected.getContour(FaceContourType.noseBridge)!.positionsList[1];
+    // Point? point = Point(offset.dx, offset.dy);
+    // imageLib.copyCrop(src, x, y, w, h)
+    // convertedImage = imageLib.copyCropCircle(convertedImage,center: point, radius: (offset.dx-_listOffset[27].dx).round());
+    return convertedImage;
   }
 }

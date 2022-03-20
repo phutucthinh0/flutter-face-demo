@@ -30,11 +30,7 @@ class FBRealtime {
     });
   }
   static readAllUsers () async {
-    // DatabaseEvent event = await ref.once();
-    // print(event.snapshot.value);
-    if(users==[]){
-      users = localDatabase.getListUser();
-    }
+    users = localDatabase.getListUser();
   }
   static Future<void> addUsers (List<User> user) async {
     List<dynamic> _list = [];

@@ -93,7 +93,7 @@ class _LoginScreenState extends State<LoginScreen> with WidgetsBindingObserver{
     setState(() {
       _listFace = results;
     });
-    //
+
     if (_listFace.length != 1) {
       warningMsg = "Chỉ cần có 1 gương mặt";
       if(_listFace.isEmpty){
@@ -108,6 +108,10 @@ class _LoginScreenState extends State<LoginScreen> with WidgetsBindingObserver{
       delayDetector();
       return;
     }
+    //
+    // delayDetector();
+    // return;
+    //
     //isolate
     var isolateData = IsolateData(_cameraImage, ImageUtils.imageRotation, _listFace[0], _maskDetectionService.interpreter.address, _faceAntiSpoofingService.interpreter.address,_faceVerificationService.interpreter.address, FBRealtime.users);
     ReceivePort responsePort = ReceivePort();
@@ -265,14 +269,14 @@ class _LoginScreenState extends State<LoginScreen> with WidgetsBindingObserver{
                               fit: StackFit.expand,
                               children: [
                                 CameraPreview(_cameraController),
-                                // if(_listFace.isNotEmpty)
-                                // CustomPaint(
-                                //   painter: FaceDetectorPainter(
-                                //       _listFace[0],
-                                //       imageSize,
-                                //       rotationIntToImageRotation(_cameraDescription.sensorOrientation)
-                                //   ),
-                                // ),
+                                if(_listFace.isNotEmpty)
+                                CustomPaint(
+                                  painter: FaceDetectorPainter(
+                                      _listFace[0],
+                                      imageSize,
+                                      rotationIntToImageRotation(_cameraDescription.sensorOrientation)
+                                  ),
+                                ),
                                 Center(
                                   child: Container(
                                     width: Get.width -80,

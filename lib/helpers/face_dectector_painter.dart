@@ -43,7 +43,7 @@ class FaceDetectorPainter extends CustomPainter {
           }
         }
 
-        // paintContour(FaceContourType.face);
+        paintContour(FaceContourType.face);
         // paintContour(FaceContourType.leftEyebrowTop);
         // paintContour(FaceContourType.leftEyebrowBottom);
         // paintContour(FaceContourType.rightEyebrowTop);
@@ -55,7 +55,7 @@ class FaceDetectorPainter extends CustomPainter {
         // paintContour(FaceContourType.lowerLipTop);
         // paintContour(FaceContourType.lowerLipBottom);
         // paintContour(FaceContourType.noseBridge);
-        paintContour(FaceContourType.noseBottom);
+        // paintContour(FaceContourType.noseBottom);
     // paintContour(FaceContourType.leftCheek);
     // paintContour(FaceContourType.rightCheek);
   }

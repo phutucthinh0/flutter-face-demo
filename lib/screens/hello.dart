@@ -23,7 +23,7 @@ class _HelloScreenState extends State<HelloScreen> {
   void initState() {
     // TODO: implement initState
     super.initState();
-    Future.delayed(Duration(seconds: 2), () {
+    Future.delayed(Duration(seconds: 5), () {
       Get.back();
       setState(() {
         _acceptBack = true;
@@ -53,7 +53,7 @@ class _HelloScreenState extends State<HelloScreen> {
             children: [
               SizedBox(height: 20,),
               ClipRRect(
-                borderRadius: BorderRadius.circular(100),
+                // borderRadius: BorderRadius.circular(100),
                 child: Image.file(
                   widget.image,
                   fit: BoxFit.cover,
