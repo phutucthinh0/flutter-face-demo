@@ -23,7 +23,7 @@ class _HelloScreenState extends State<HelloScreen> {
   void initState() {
     // TODO: implement initState
     super.initState();
-    Future.delayed(Duration(seconds: 5), () {
+    Future.delayed(Duration(seconds: 2), () {
       Get.back();
       setState(() {
         _acceptBack = true;

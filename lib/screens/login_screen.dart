@@ -125,7 +125,7 @@ class _LoginScreenState extends State<LoginScreen> with WidgetsBindingObserver{
     List<Offset> _listPoint = _listFace[0].getContour(FaceContourType.noseBottom)!.positionsList;
     double leftPoint = _listPoint[1].dx - _listPoint[0].dx;
     double rightPoint = _listPoint[2].dx - _listPoint[1].dx;
-    if ((leftPoint - rightPoint).abs() > 2) {
+    if ((leftPoint - rightPoint).abs() >= 5) {
       setState(() {
         cautionMsg = "Vui lòng nhìn thẳng";
       });
@@ -133,7 +133,7 @@ class _LoginScreenState extends State<LoginScreen> with WidgetsBindingObserver{
       return;
     }
     setState(() {
-      cautionMsg = "Vui lòng nhìn thẳng";
+      cautionMsg = "";
     });
     var isolateData = IsolateData(_cameraImage, ImageUtils.imageRotation, _listFace[0], _maskDetectionService.interpreter.address, [_faceAntiSpoofingService.interpreterV1.address, _faceAntiSpoofingService.interpreterV2.address],_faceVerificationService.interpreter.address, FBRealtime.users);
     ReceivePort responsePort = ReceivePort();
@@ -255,8 +255,8 @@ class _LoginScreenState extends State<LoginScreen> with WidgetsBindingObserver{
                                 ),
                                 Center(
                                   child: Container(
-                                    width: Get.width -80,
-                                    height: Get.width -50,
+                                    width: Get.width - 170,
+                                    height: Get.width - 140,
                                     decoration: BoxDecoration(
                                         border: Border.all(color: Colors.blue, width: 2)
                                     ),

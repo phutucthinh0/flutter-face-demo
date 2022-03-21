@@ -45,7 +45,9 @@ class IsolateUtils {
         await faceVerificationService.initialize(isolateData.verificationInterpreterAddress);
         ImageUtils.imageRotation = isolateData.imageRotation;
         imageLib.Image inputImage = ImageUtils.cropFace(isolateData.cameraImage, isolateData.face);
-        MaskDetectorState maskResults = maskDetectionService.detectMask(inputImage);
+        // MaskDetectorState maskResults = maskDetectionService.detectMask(inputImage);
+        MaskDetectorState maskResults = MaskDetectorState.noMask;
+
         bool spoofingResults = false;
         User? user;
         // if(maskResults == MaskDetectorState.noMask){
