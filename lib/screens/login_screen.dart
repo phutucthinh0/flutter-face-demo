@@ -132,7 +132,9 @@ class _LoginScreenState extends State<LoginScreen> with WidgetsBindingObserver{
       delayDetector();
       return;
     }
-
+    setState(() {
+      cautionMsg = "Vui lòng nhìn thẳng";
+    });
     var isolateData = IsolateData(_cameraImage, ImageUtils.imageRotation, _listFace[0], _maskDetectionService.interpreter.address, [_faceAntiSpoofingService.interpreterV1.address, _faceAntiSpoofingService.interpreterV2.address],_faceVerificationService.interpreter.address, FBRealtime.users);
     ReceivePort responsePort = ReceivePort();
     isolateUtils.sendPort.send(isolateData..responsePort = responsePort.sendPort);
