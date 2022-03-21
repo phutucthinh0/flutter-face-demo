@@ -109,17 +109,11 @@ class ImageUtils {
   static imageLib.Image cropFace(CameraImage image, Face faceDetected) {
     imageLib.Image convertedImage = convertCameraImage(image)!;
     convertedImage = imageLib.copyRotate(convertedImage , ImageUtils.imageRotation);
-    // double x = faceDetected.boundingBox.left;
-    // double y = faceDetected.boundingBox.top;
-    // double w = faceDetected.boundingBox.width;
-    // double h = faceDetected.boundingBox.height;
-
     List<Offset> _listOffset = faceDetected.getContour(FaceContourType.face)!.positionsList;
     double x = _listOffset[28].dx;
     double y = _listOffset[0].dy;
     double w =  _listOffset[9].dx -  _listOffset[28].dx;
     double h =  _listOffset[18].dy - _listOffset[0].dy;
-
     convertedImage = imageLib.copyCrop(convertedImage, x.round(), y.round(), w.round(), h.round());
     // Offset offset = faceDetected.getContour(FaceContourType.noseBridge)!.positionsList[1];
     // Point? point = Point(offset.dx, offset.dy);

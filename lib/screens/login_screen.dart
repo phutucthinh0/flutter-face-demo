@@ -5,7 +5,7 @@ import 'package:camera/camera.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_face_demo/data/firebase_database.dart';
-import 'package:flutter_face_demo/services/face_anti_spoofing_serverice.dart';
+import 'package:flutter_face_demo/services/face_anti_spoofing_service.dart';
 import 'package:flutter_face_demo/services/face_verification_service.dart';
 import 'package:flutter_face_demo/services/mask_detection_service.dart';
 import 'package:flutter_face_demo/utils/image_utils.dart';
@@ -39,15 +39,14 @@ class _LoginScreenState extends State<LoginScreen> with WidgetsBindingObserver{
   late CameraDescription _cameraDescription;
   late Size imageSize;
   late CameraImage _cameraImage;
-  final FaceDetector _faceDetector = GoogleVision.instance.faceDetector(FaceDetectorOptions(enableContours: true));
+  final FaceDetector _faceDetector = GoogleVision.instance.faceDetector(FaceDetectorOptions(enableContours: true, enableTracking: true, enableClassification: true));
   List<Face> _listFace = [];
   final MaskDetectionService _maskDetectionService = MaskDetectionService();
-  final FaceAntiSpoofingService _faceAntiSpoofingService = FaceAntiSpoofingService();
   final FaceVerificationService _faceVerificationService = FaceVerificationService();
+  final FaceAntiSpoofingService _faceAntiSpoofingService = FaceAntiSpoofingService();
   final IsolateUtils isolateUtils = IsolateUtils();
 
-  int laplacianScore = 0;
-  double spoofingScore = 0;
+  bool spoofingResults = false;
   int estimatedTime = 0;
   String warningMsg = "";
   String cautionMsg = "";
@@ -109,11 +108,32 @@ class _LoginScreenState extends State<LoginScreen> with WidgetsBindingObserver{
       return;
     }
     //
+    // final ff = _listFace[0];
+    // if(_faceAntiSpoofingService.antiSpoofing(ImageUtils.cropFace(_cameraImage, ff))){
+    //   setState(() {
+    //     spoofingScore = 3000;
+    //   });
+    // }else{
+    //   setState(() {
+    //     spoofingScore = 1000;
+    //   });
+    // };
     // delayDetector();
     // return;
     //
     //isolate
-    var isolateData = IsolateData(_cameraImage, ImageUtils.imageRotation, _listFace[0], _maskDetectionService.interpreter.address, _faceAntiSpoofingService.interpreter.address,_faceVerificationService.interpreter.address, FBRealtime.users);
+    List<Offset> _listPoint = _listFace[0].getContour(FaceContourType.noseBottom)!.positionsList;
+    double leftPoint = _listPoint[1].dx - _listPoint[0].dx;
+    double rightPoint = _listPoint[2].dx - _listPoint[1].dx;
+    if ((leftPoint - rightPoint).abs() > 2) {
+      setState(() {
+        cautionMsg = "Vui lòng nhìn thẳng";
+      });
+      delayDetector();
+      return;
+    }
+
+    var isolateData = IsolateData(_cameraImage, ImageUtils.imageRotation, _listFace[0], _maskDetectionService.interpreter.address, [_faceAntiSpoofingService.interpreterV1.address, _faceAntiSpoofingService.interpreterV2.address],_faceVerificationService.interpreter.address, FBRealtime.users);
     ReceivePort responsePort = ReceivePort();
     isolateUtils.sendPort.send(isolateData..responsePort = responsePort.sendPort);
     var response = await responsePort.first;
@@ -131,20 +151,27 @@ class _LoginScreenState extends State<LoginScreen> with WidgetsBindingObserver{
       delayDetector();
       return;
     }
-    laplacianScore = response['laplacian'];
-    if(laplacianScore<200){
+    // User? _user = response['verificationUser'];
+    // if(_user != null){
+    //   spoofingResults = response['spoofingResults'];
+    //   if(!spoofingResults){
+    //     setState(() {
+    //       cautionMsg = "Phát hiện giả mạo";
+    //     });
+    //     delayDetector();
+    //     return;
+    //   }
+    //   File _image = await ImageUtils.saveImage(ImageUtils.cropFace(_cameraImage, _listFace[0]));
+    //   await Get.to(() => HelloScreen(user: _user, image: _image));
+    // }else{
+    //   warningMsg = "Null";
+    // }
+    spoofingResults = response['spoofingResults'];
+    if(!spoofingResults){
+      var esTime = DateTime.now().millisecondsSinceEpoch- startTime.millisecondsSinceEpoch;
       setState(() {
-        laplacianScore;
-        cautionMsg = "Hình ảnh mờ, hoặc không rõ ràng.\nVui lòng giữ ổn định";
-      });
-      delayDetector();
-      return;
-    }
-    spoofingScore = response['spoofingResults'];
-    if(spoofingScore<0.9){
-      setState(() {
-        laplacianScore;
-        spoofingScore;
+        warningMsg;
+        estimatedTime = esTime;
         cautionMsg = "Phát hiện giả mạo";
       });
       delayDetector();
@@ -157,63 +184,10 @@ class _LoginScreenState extends State<LoginScreen> with WidgetsBindingObserver{
     }else{
       warningMsg = "Null";
     }
-    // qualityScore = _faceAntiSpoofingService.laplacian(ImageUtils.cropFace(_cameraImage, _listFace[0]));
-    // // qualityScore = 902;
-    // if (qualityScore < 10){
-    //   warningMsg = "Phát hiện giả mạo";
-    //   delayDetector();
-    //   return;
-    // }
-    // if (10 <= qualityScore && qualityScore <= 700) {
-    //   warningMsg =
-    //       "Vui lòng đưa lại gần\n hoặc làm sạch camera\n hoặc đưa ra khu vực đủ sáng";
-    //   delayDetector();
-    //   return;
-    // }
-    // if (qualityScore > 700) warningMsg = "ĐANG NHẬN DIỆN";
-    // // double score = await _faceAntiSpoofingService.antiSpoofing( ImageUtils.cropFace(_cameraImage, _listFace[0]));
-    // setState(() {
-    //   qualityScore;
-    //   warningMsg;
-    // });
-    // // delayDetector();
-    // // return;
-    // if (qualityScore > 700 && !_isSpoofing) {
-    //   print('-----------------------');
-    //   await _faceVerificationService.setCurrentPrediction(
-    //       _cameraImage, _listFace[0]);
-    //   User? _user = await _faceVerificationService.predict();
-    //   if (_user != null) {
-    //     _onPause = true;
-    //     setState(() {
-    //       _isInitialize = true;
-    //     });
-    //     if (await _faceAntiSpoofingService.antiSpoofing(ImageUtils.cropFace(_cameraImage, _listFace[0])) < 0.90) {
-    //       warningMsg = "Giả mạo";
-    //     } else {
-    //       File _image = await ImageUtils.saveImage(ImageUtils.cropFace(_cameraImage, _listFace[0]));
-    //       await Get.to(() => HelloScreen(user: _user, image: _image));
-    //     }
-    //     setState(() {
-    //       _isInitialize = false;
-    //     });
-    //     _isDetecting = false;
-    //     _onPause = false;
-    //   } else {
-    //     setState(() {
-    //       warningMsg = "Đang nhận diện";
-    //     });
-    //   }
-    //   // Future.delayed(Duration(seconds: 2), () {
-    //   //   _isSpoofing = false;
-    //   // });
-    //   _isSpoofing = false;
-    // }
+
     var esTime = DateTime.now().millisecondsSinceEpoch- startTime.millisecondsSinceEpoch;
     setState(() {
       warningMsg;
-      laplacianScore;
-      spoofingScore;
       estimatedTime = esTime;
       cautionMsg = "";
     });
@@ -221,7 +195,7 @@ class _LoginScreenState extends State<LoginScreen> with WidgetsBindingObserver{
   }
 
   delayDetector() {
-    Future.delayed(Duration(milliseconds: 100), () => _isDetecting = false);
+    Future.delayed(Duration(milliseconds: 10), () => _isDetecting = false);
   }
 
   @override
@@ -322,8 +296,6 @@ class _LoginScreenState extends State<LoginScreen> with WidgetsBindingObserver{
                             fontWeight: FontWeight.bold),
                       )),
                   if(_showDebug)Column(children: [
-                    Text('Laplacian score: $laplacianScore'),
-                    Text('Spoofing score: $spoofingScore'),
                     Text('Estimated Time: $estimatedTime'),
                     Text(
                       'Warning: $warningMsg',

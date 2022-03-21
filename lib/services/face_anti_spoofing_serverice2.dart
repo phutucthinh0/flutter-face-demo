@@ -3,14 +3,14 @@ import 'package:image/image.dart' as imageLib;
 
 import '../utils/image_utils.dart';
 
-class FaceAntiSpoofingService{
+class FaceAntiSpoofingService2{
   final int INPUT_IMAGE_SIZE = 256;
   final double THRESHOLD = 0.2;
   final int ROUTE_INDEX = 6;
   final int LAPLACE_THRESHOLD = 50;
   final int LAPLACIAN_THRESHOLD = 1000;
   late Interpreter _interpreter;
-  FaceAntiSpoofingService();
+  FaceAntiSpoofingService2();
   Future initialize([int? interpreterAddress]) async {
     if(interpreterAddress != null){
       _interpreter = Interpreter.fromAddress(interpreterAddress);

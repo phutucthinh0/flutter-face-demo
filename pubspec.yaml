@@ -70,8 +70,9 @@ flutter:
     - assets/
     - assets/icons/
     - assets/mobilefacenet.tflite
-    - assets/faceantispoofing.tflite
     - assets/maskdetector.tflite
+    - assets/2.7_80x80_MiniFASNetV2.tflite
+    - assets/4_0_0_80x80_MiniFASNetV1SE.tflite
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/assets-and-images/#resolution-aware.

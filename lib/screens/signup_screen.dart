@@ -7,8 +7,6 @@ import 'package:flutter_face_demo/screens/signup_done_screen.dart';
 import 'package:flutter_face_demo/services/face_verification_service.dart';
 import 'package:get/get.dart';
 import 'package:google_ml_vision/google_ml_vision.dart';
-
-import '../services/face_anti_spoofing_serverice.dart';
 import '../utils/image_utils.dart';
 import '../utils/scanner_utils.dart';
 
@@ -30,7 +28,6 @@ class _SignupScreenState extends State<SignupScreen> {
   late Size imageSize;
   final FaceDetector _faceDetector = GoogleVision.instance.faceDetector(const FaceDetectorOptions(enableContours: true));
   List<Face> _listFace = [];
-  final FaceAntiSpoofingService _faceAntiSpoofingService = FaceAntiSpoofingService();
   final FaceVerificationService _faceVerificationService = FaceVerificationService();
   int qualityScore = 0;
   String warningMsg = "";
@@ -45,7 +42,6 @@ class _SignupScreenState extends State<SignupScreen> {
   }
 
   initStateAsync() async {
-    await _faceAntiSpoofingService.initialize();
     await _faceVerificationService.initialize();
     _cameras = await availableCameras();
     _cameraDescription = _cameras.firstWhere(
@@ -311,7 +307,6 @@ class _SignupScreenState extends State<SignupScreen> {
     if (_cameraController.hasListeners) _cameraController.stopImageStream();
     _faceDetector.close();
     _faceVerificationService.dispose();
-    _faceAntiSpoofingService.dispose();
     if (_timer != null) _timer!.cancel();
     super.dispose();
   }
