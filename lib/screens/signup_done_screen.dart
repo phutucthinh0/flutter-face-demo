@@ -30,21 +30,16 @@ class _SignupDoneScreenState extends State<SignupDoneScreen> {
   }
   void initStateAsync()async{
   }
-  void done()async{
-    List<User> userToSave = [];
-    userToSave.add(User(
-        user: tffNameController.text,
-        modelData: widget.listModelData[0]));
 
-        // for(int i=0; i<=2; i++){
-    //   userToSave.add(User(
-    //       user: tffNameController.text,
-    //       modelData: widget.listModelData[i]
-    //   ));
-    // }
+  void done() async {
+    List<User> userToSave = [];
+    for (int i = 0; i <= 2; i++) {
+      userToSave.add(User(user: tffNameController.text, modelData: widget.listModelData[i]));
+    }
     await FBRealtime.addUsers(userToSave);
     Get.back();
   }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(

@@ -20,7 +20,7 @@ class IsolateUtils {
   late SendPort _sendPort;
   SendPort get sendPort => _sendPort;
 
-  void start() async {
+  Future<void> start() async {
     _isolate = await Isolate.spawn<SendPort>(
       entryPoint,
       _receivePort.sendPort,
@@ -28,47 +28,44 @@ class IsolateUtils {
     );
     _sendPort = await _receivePort.first;
   }
-  void dispose(){
-    _isolate.kill();
-  }
 
   static void entryPoint(SendPort sendPort) async {
     final port = ReceivePort();
     sendPort.send(port.sendPort);
-    await for (final IsolateData isolateData in port) {
-      if (isolateData != null) {
-        final maskDetectionService = MaskDetectionService();
-        final faceAntiSpoofingService = FaceAntiSpoofingService();
-        final faceVerificationService = FaceVerificationService();
-        await maskDetectionService.initialize(isolateData.maskInterpreterAddress);
-        await faceAntiSpoofingService.initialize(isolateData.spoofingInterpreterAddress[0],isolateData.spoofingInterpreterAddress[1]);
-        await faceVerificationService.initialize(isolateData.verificationInterpreterAddress);
-        ImageUtils.imageRotation = isolateData.imageRotation;
-        imageLib.Image inputImage = ImageUtils.cropFace(isolateData.cameraImage, isolateData.face);
-        MaskDetectorState maskResults = maskDetectionService.detectMask(inputImage);
-        bool spoofingResults = false;
-        User? user;
-        // if(maskResults == MaskDetectorState.noMask){
-        //   faceVerificationService.setCurrentPrediction(isolateData.cameraImage, isolateData.face);
-        //   user = faceVerificationService.predict(isolateData.users);
-        //   if(user != null){
-        //     spoofingResults = faceAntiSpoofingService.antiSpoofingV12(inputImage);
-        //   }
-        // }
+    await for (IsolateData isolateData in port) {
+      final maskDetectionService = MaskDetectionService();
+      final faceAntiSpoofingService = FaceAntiSpoofingService();
+      final faceVerificationService = FaceVerificationService();
+      await maskDetectionService.initialize(isolateData.maskInterpreterAddress);
+      await faceAntiSpoofingService.initialize(isolateData.spoofingInterpreterAddress[0],isolateData.spoofingInterpreterAddress[1]);
+      await faceVerificationService.initialize(isolateData.verificationInterpreterAddress);
+      ImageUtils.imageRotation = isolateData.imageRotation;
+      imageLib.Image inputImage = ImageUtils.cropFace(isolateData.cameraImage, isolateData.face);
+      // MaskDetectorState maskResults = maskDetectionService.detectMask(inputImage);
+      MaskDetectorState maskResults = MaskDetectorState.noMask;
 
-        if(maskResults == MaskDetectorState.noMask){
-          spoofingResults = faceAntiSpoofingService.antiSpoofingV12(inputImage);
-          if(spoofingResults){
-            faceVerificationService.setCurrentPrediction(isolateData.cameraImage, isolateData.face);
-            user = faceVerificationService.predict(isolateData.users);
-          }
+      bool spoofingResults = false;
+      User? user;
+      // if(maskResults == MaskDetectorState.noMask){
+      //   faceVerificationService.setCurrentPrediction(isolateData.cameraImage, isolateData.face);
+      //   user = faceVerificationService.predict(isolateData.users);
+      //   if(user != null){
+      //     spoofingResults = faceAntiSpoofingService.antiSpoofingV12(inputImage);
+      //   }
+      // }
+
+      if(maskResults == MaskDetectorState.noMask){
+        spoofingResults = faceAntiSpoofingService.antiSpoofingV12(inputImage);
+        if(spoofingResults){
+          faceVerificationService.setCurrentPrediction(isolateData.cameraImage, isolateData.face);
+          user = faceVerificationService.predict(isolateData.users);
         }
-        isolateData.responsePort!.send({
-          'maskResults': maskResults,
-          'spoofingResults': spoofingResults,
-          'verificationUser':user
-        });
       }
+      isolateData.responsePort!.send({
+        'maskResults': maskResults,
+        'spoofingResults': spoofingResults,
+        'verificationUser':user
+      });
     }
   }
 }

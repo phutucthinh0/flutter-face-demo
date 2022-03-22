@@ -5,25 +5,32 @@ import '../enums.dart';
 import 'coordinates_translator.dart';
 
 class FaceDetectorPainter extends CustomPainter {
-  FaceDetectorPainter(this.face, this.absoluteImageSize, this.rotation);
+  FaceDetectorPainter(this.face, this.absoluteImageSize, this.rotation, [this.color = Colors.red]);
 
   final Face face;
   final Size absoluteImageSize;
   final InputImageRotation rotation;
-
+  final Color color;
   @override
   void paint(Canvas canvas, Size size) {
     final Paint paint = Paint()
       ..style = PaintingStyle.stroke
-      ..strokeWidth = 1.0
-      ..color = Colors.red;
+      ..strokeWidth = 2.0
+      ..color = color;
+    final List<Offset> _listOffset = face.getContour(FaceContourType.face)!.positionsList;
+
     canvas.drawRect(
+      // Rect.fromLTRB(
+      //   translateX(face.boundingBox.left, rotation, size, absoluteImageSize),
+      //   translateY(face.boundingBox.top, rotation, size, absoluteImageSize),
+      //   translateX(face.boundingBox.right, rotation, size, absoluteImageSize),
+      //   translateY(face.boundingBox.bottom, rotation, size, absoluteImageSize),
+      // ),
       Rect.fromLTRB(
-        translateX(face.boundingBox.left, rotation, size, absoluteImageSize),
-        translateY(face.boundingBox.top, rotation, size, absoluteImageSize),
-        translateX(face.boundingBox.right, rotation, size, absoluteImageSize),
-        translateY(
-            face.boundingBox.bottom, rotation, size, absoluteImageSize),
+        translateX(_listOffset[28].dx, rotation, size, absoluteImageSize),
+        translateY(_listOffset[0].dy, rotation, size, absoluteImageSize),
+        translateX(_listOffset[9].dx, rotation, size, absoluteImageSize),
+        translateY(_listOffset[18].dy, rotation, size, absoluteImageSize),
       ),
       paint,
     );
@@ -43,7 +50,7 @@ class FaceDetectorPainter extends CustomPainter {
           }
         }
 
-        paintContour(FaceContourType.face);
+        // paintContour(FaceContourType.face);
         // paintContour(FaceContourType.leftEyebrowTop);
         // paintContour(FaceContourType.leftEyebrowBottom);
         // paintContour(FaceContourType.rightEyebrowTop);

@@ -48,7 +48,6 @@ class _LoginScreenState extends State<LoginScreen> with WidgetsBindingObserver{
 
   bool spoofingResults = false;
   int estimatedTime = 0;
-  String warningMsg = "";
   String cautionMsg = "";
   @override
   void initState() {
@@ -94,7 +93,6 @@ class _LoginScreenState extends State<LoginScreen> with WidgetsBindingObserver{
     });
 
     if (_listFace.length != 1) {
-      warningMsg = "Chỉ cần có 1 gương mặt";
       if(_listFace.isEmpty){
         setState(() {
           cautionMsg = "Đưa gương mặt vào chính giữa";
@@ -107,7 +105,7 @@ class _LoginScreenState extends State<LoginScreen> with WidgetsBindingObserver{
       delayDetector();
       return;
     }
-    //
+    // For Tester
     // final ff = _listFace[0];
     // if(_faceAntiSpoofingService.antiSpoofing(ImageUtils.cropFace(_cameraImage, ff))){
     //   setState(() {
@@ -125,7 +123,7 @@ class _LoginScreenState extends State<LoginScreen> with WidgetsBindingObserver{
     List<Offset> _listPoint = _listFace[0].getContour(FaceContourType.noseBottom)!.positionsList;
     double leftPoint = _listPoint[1].dx - _listPoint[0].dx;
     double rightPoint = _listPoint[2].dx - _listPoint[1].dx;
-    if ((leftPoint - rightPoint).abs() > 5) {
+    if ((leftPoint - rightPoint).abs() >= 5) {
       setState(() {
         cautionMsg = "Vui lòng nhìn thẳng";
       });
@@ -142,7 +140,6 @@ class _LoginScreenState extends State<LoginScreen> with WidgetsBindingObserver{
 
     var _maskState = response['maskResults'];
     if(_maskState == MaskDetectorState.suspecting){
-      warningMsg = "Nghi ngờ";
       delayDetector();
       return;
     }
@@ -172,7 +169,6 @@ class _LoginScreenState extends State<LoginScreen> with WidgetsBindingObserver{
     if(!spoofingResults){
       var esTime = DateTime.now().millisecondsSinceEpoch- startTime.millisecondsSinceEpoch;
       setState(() {
-        warningMsg;
         estimatedTime = esTime;
         cautionMsg = "Phát hiện giả mạo";
       });
@@ -183,13 +179,9 @@ class _LoginScreenState extends State<LoginScreen> with WidgetsBindingObserver{
     if(_user != null){
       File _image = await ImageUtils.saveImage(ImageUtils.cropFace(_cameraImage, _listFace[0]));
       await Get.to(() => HelloScreen(user: _user, image: _image));
-    }else{
-      warningMsg = "Null";
     }
-
     var esTime = DateTime.now().millisecondsSinceEpoch- startTime.millisecondsSinceEpoch;
     setState(() {
-      warningMsg;
       estimatedTime = esTime;
       cautionMsg = "";
     });
@@ -255,8 +247,8 @@ class _LoginScreenState extends State<LoginScreen> with WidgetsBindingObserver{
                                 ),
                                 Center(
                                   child: Container(
-                                    width: Get.width -80,
-                                    height: Get.width -50,
+                                    width: Get.width - 170,
+                                    height: Get.width - 140,
                                     decoration: BoxDecoration(
                                         border: Border.all(color: Colors.blue, width: 2)
                                     ),
@@ -299,20 +291,11 @@ class _LoginScreenState extends State<LoginScreen> with WidgetsBindingObserver{
                       )),
                   if(_showDebug)Column(children: [
                     Text('Estimated Time: $estimatedTime'),
-                    Text(
-                      'Warning: $warningMsg',
-                      style: TextStyle(color: Colors.red),
-                    ),
-                    // ElevatedButton(
-                    //     onPressed: () async {
-                    //       _done();
-                    //       // await dialogAnimationWrapper(
-                    //       //     context: context,
-                    //       //     slideFrom: 'bottom',
-                    //       //     backgroundColor: Colors.transparent,
-                    //       //     child: DialogFaceFake());
-                    //     },
-                    //     child: Text('Test'))
+                    ElevatedButton(
+                        onPressed: () async {
+                          _done();
+                        },
+                        child: Text('Test'))
                   ],)
                 ],
               ),
@@ -328,12 +311,11 @@ class _LoginScreenState extends State<LoginScreen> with WidgetsBindingObserver{
 
   @override
   void dispose() {
-    isolateUtils.dispose();
     _faceDetector.close();
     _maskDetectionService.dispose();
     _faceVerificationService.dispose();
     _faceAntiSpoofingService.dispose();
-    if (_cameraController.hasListeners) _cameraController.stopImageStream();
+    _cameraController.stopImageStream();
     super.dispose();
   }
 }
