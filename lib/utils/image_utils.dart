@@ -121,4 +121,14 @@ class ImageUtils {
     // convertedImage = imageLib.copyCropCircle(convertedImage,center: point, radius: (offset.dx-_listOffset[27].dx).round());
     return convertedImage;
   }
+  static imageLib.Image cropFaceSpoofing(CameraImage image, Face faceDetected) {
+    imageLib.Image convertedImage = convertCameraImage(image)!;
+    convertedImage = imageLib.copyRotate(convertedImage , ImageUtils.imageRotation);
+    double x = faceDetected.boundingBox.left;
+    double y = faceDetected.boundingBox.top;
+    double w = faceDetected.boundingBox.width;
+    double h = faceDetected.boundingBox.height;
+    convertedImage = imageLib.copyCrop(convertedImage, x.round(), y.round(), w.round(), h.round());
+    return convertedImage;
+  }
 }

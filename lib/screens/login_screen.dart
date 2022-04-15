@@ -245,15 +245,15 @@ class _LoginScreenState extends State<LoginScreen> with WidgetsBindingObserver{
                                       rotationIntToImageRotation(_cameraDescription.sensorOrientation)
                                   ),
                                 ),
-                                Center(
-                                  child: Container(
-                                    width: Get.width - 170,
-                                    height: Get.width - 140,
-                                    decoration: BoxDecoration(
-                                        border: Border.all(color: Colors.blue, width: 2)
-                                    ),
-                                  ),
-                                ),
+                                // Center(
+                                //   child: Container(
+                                //     width: Get.width - 170,
+                                //     height: Get.width - 140,
+                                //     decoration: BoxDecoration(
+                                //         border: Border.all(color: Colors.blue, width: 2)
+                                //     ),
+                                //   ),
+                                // ),
                                 if(cautionMsg.isNotEmpty)
                                 Center(
                                   child: Container(
